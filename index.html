@@ -58,6 +58,9 @@ body{font-family:var(--sans);background:var(--surface);color:var(--text);max-wid
 .auth-error{font-size:12px;color:#E24B4A;margin-top:8px;padding:8px 10px;background:#FFF0F0;border-radius:6px;border:0.5px solid #FFCFCF;display:none;line-height:1.4;}
 .auth-success{font-size:12px;color:#1a7a3a;margin-top:8px;padding:8px 10px;background:#F0FFF4;border-radius:6px;border:0.5px solid #B2F0C8;display:none;line-height:1.4;}
 .auth-loading{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;}
+.forgot-link{text-align:right;margin-bottom:6px;}
+.forgot-link button{background:none;border:none;font-size:12px;color:var(--hint);cursor:pointer;font-family:var(--sans);padding:0;transition:color 0.15s;}
+.forgot-link button:hover{color:var(--orange);}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* HEADER */
@@ -113,6 +116,12 @@ body{font-family:var(--sans);background:var(--surface);color:var(--text);max-wid
 .autolog-banner i{color:var(--orange);font-size:18px;flex-shrink:0;}
 .autolog-banner-text{font-size:12px;color:#A03010;flex:1;line-height:1.4;}
 .autolog-banner-btn{font-size:11px;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;font-family:var(--sans);white-space:nowrap;}
+
+/* OFFLINE BANNER */
+.offline-banner{background:#FFF3CD;border:0.5px solid #FFE08A;border-radius:var(--radius);padding:10px 14px;margin-bottom:1rem;display:none;align-items:center;gap:10px;}
+.offline-banner.show{display:flex;}
+.offline-banner i{color:#E8A000;font-size:18px;flex-shrink:0;}
+.offline-banner-text{font-size:12px;color:#7A5500;flex:1;line-height:1.4;}
 
 /* SESSION LOG */
 .session-log-item{display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:var(--radius);padding:10px 12px;border:0.5px solid var(--border);margin-bottom:6px;}
@@ -263,7 +272,11 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.5;}
         <label class="auth-label">Password</label>
         <input class="auth-input" id="login-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
       </div>
+      <div class="forgot-link">
+        <button type="button" onclick="doForgotPassword()">Forgot password?</button>
+      </div>
       <p class="auth-error" id="login-error"></p>
+      <p class="auth-success" id="login-success"></p>
       <button class="auth-btn" id="login-btn" onclick="doLogin()">Log in</button>
       <div class="auth-divider">or</div>
       <button class="auth-social" id="google-login-btn" onclick="doGoogleLogin()">
@@ -302,6 +315,12 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.5;}
 <div class="toast" id="toast"></div>
 
 <div class="app" id="main-app" style="display:none">
+
+<!-- OFFLINE BANNER -->
+<div class="offline-banner" id="offline-banner">
+  <i class="ti ti-wifi-off"></i>
+  <div class="offline-banner-text"><strong>You're offline</strong> — sessions will be saved locally and synced when you reconnect.</div>
+</div>
 
 <!-- VERIFY EMAIL BANNER -->
 <div class="verify-banner" id="verify-banner">
@@ -525,7 +544,8 @@ import {
   signOut,
   onAuthStateChanged,
   GoogleAuthProvider,
-  signInWithPopup,
+  signInWithRedirect,   /* ← switched from signInWithPopup */
+  getRedirectResult,    /* ← needed to capture redirect result */
   sendEmailVerification,
   sendPasswordResetEmail,
   updateProfile
@@ -541,8 +561,8 @@ import {
   getDocs,
   query,
   orderBy,
-  limit,
-  serverTimestamp
+  serverTimestamp,
+  enableIndexedDbPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ── Firebase config ──────────────────────────────────────────────
@@ -560,6 +580,23 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
+
+// ── Enable offline persistence ───────────────────────────────────
+enableIndexedDbPersistence(db).catch(err => {
+  if(err.code === 'failed-precondition'){
+    console.warn('Firestore persistence unavailable: multiple tabs open.');
+  } else if(err.code === 'unimplemented'){
+    console.warn('Firestore persistence not supported in this browser.');
+  }
+});
+
+// ── Online/offline detection ─────────────────────────────────────
+function updateOnlineStatus(){
+  const banner = document.getElementById('offline-banner');
+  if(banner) banner.classList.toggle('show', !navigator.onLine);
+}
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
 
 // ── State ────────────────────────────────────────────────────────
 let MODES={focus:25*60,short:5*60,long:15*60};
@@ -593,9 +630,9 @@ function setLoading(btnId, loading, originalText){
   btn.disabled=loading;
   btn.innerHTML=loading?`<span class="auth-loading"></span>`:(originalText||btn.textContent);
 }
-
 function showError(id, msg){
   const el=document.getElementById(id);
+  if(!el)return;
   el.textContent=msg;el.style.display='block';
   const suc=document.getElementById(id.replace('error','success'));
   if(suc)suc.style.display='none';
@@ -608,12 +645,11 @@ function showSuccess(id, msg){
   if(err)err.style.display='none';
 }
 function clearMessages(){
-  ['login-error','signup-error','signup-success'].forEach(id=>{
+  ['login-error','login-success','signup-error','signup-success'].forEach(id=>{
     const el=document.getElementById(id);
     if(el)el.style.display='none';
   });
 }
-
 function firebaseErrMsg(code){
   const map={
     'auth/invalid-email':'Invalid email address.',
@@ -623,7 +659,7 @@ function firebaseErrMsg(code){
     'auth/email-already-in-use':'An account with this email already exists.',
     'auth/weak-password':'Password must be at least 6 characters.',
     'auth/too-many-requests':'Too many attempts. Please try again later.',
-    'auth/popup-closed-by-user':'Sign-in popup was closed.',
+    'auth/popup-closed-by-user':'Sign-in was cancelled.',
     'auth/network-request-failed':'Network error. Check your connection.',
   };
   return map[code]||'Something went wrong. Please try again.';
@@ -646,7 +682,6 @@ window.doLogin=async function(){
   setLoading('login-btn',true);
   try{
     await signInWithEmailAndPassword(auth,email,pw);
-    // onAuthStateChanged handles the rest
   }catch(e){
     showError('login-error',firebaseErrMsg(e.code));
     setLoading('login-btn',false,'Log in');
@@ -665,7 +700,6 @@ window.doSignup=async function(){
     const cred=await createUserWithEmailAndPassword(auth,email,pw);
     await updateProfile(cred.user,{displayName:name});
     await sendEmailVerification(cred.user);
-    // Save user to Firestore
     await setDoc(doc(db,'users',cred.user.uid),{
       name,
       handle:email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g,''),
@@ -681,26 +715,56 @@ window.doSignup=async function(){
   }
 };
 
+// ── Google sign-in via redirect (fixes COOP error) ───────────────
 window.doGoogleLogin=async function(){
   clearMessages();
   try{
-    const result=await signInWithPopup(auth,googleProvider);
-    const user=result.user;
-    // Create profile in Firestore if new user
-    const userRef=doc(db,'users',user.uid);
-    const snap=await getDoc(userRef);
-    if(!snap.exists()){
-      await setDoc(userRef,{
-        name:user.displayName||'Focuser',
-        handle:(user.email||'').split('@')[0].toLowerCase().replace(/[^a-z0-9]/g,''),
-        location:'Ulaanbaatar',
-        bio:'Deep work enthusiast. Building in public. ☕→⚡',
-        createdAt:serverTimestamp()
-      });
-    }
+    await signInWithRedirect(auth, googleProvider);
+    // Page will redirect to Google — result handled in getRedirectResult below
   }catch(e){
     const errId=document.getElementById('auth-login-form').style.display!=='none'?'login-error':'signup-error';
-    showError(errId,firebaseErrMsg(e.code));
+    showError(errId, firebaseErrMsg(e.code));
+  }
+};
+
+// Handle the redirect result when the page loads back
+async function handleRedirectResult(){
+  try{
+    const result = await getRedirectResult(auth);
+    if(result && result.user){
+      const user = result.user;
+      const userRef = doc(db,'users',user.uid);
+      let snap;
+      try{ snap = await getDoc(userRef); }catch(_){ snap = {exists:()=>false}; }
+      if(!snap.exists()){
+        try{
+          await setDoc(userRef,{
+            name:user.displayName||'Focuser',
+            handle:(user.email||'').split('@')[0].toLowerCase().replace(/[^a-z0-9]/g,''),
+            location:'Ulaanbaatar',
+            bio:'Deep work enthusiast. Building in public. ☕→⚡',
+            createdAt:serverTimestamp()
+          });
+        }catch(_){}
+      }
+    }
+  }catch(e){
+    if(e.code !== 'auth/no-current-user'){
+      showError('login-error', firebaseErrMsg(e.code));
+    }
+  }
+}
+
+// ── Forgot password ──────────────────────────────────────────────
+window.doForgotPassword=async function(){
+  const email=document.getElementById('login-email').value.trim();
+  clearMessages();
+  if(!email){showError('login-error','Enter your email above first, then click Forgot password.');return;}
+  try{
+    await sendPasswordResetEmail(auth,email);
+    showSuccess('login-success','Password reset email sent! Check your inbox.');
+  }catch(e){
+    showError('login-error',firebaseErrMsg(e.code));
   }
 };
 
@@ -725,33 +789,36 @@ window.sendPasswordReset=async function(){
 onAuthStateChanged(auth, async(user)=>{
   if(user){
     currentUser=user;
-    // Load profile from Firestore
-    const snap=await getDoc(doc(db,'users',user.uid));
-    if(snap.exists()){
-      const d=snap.data();
-      profile.name=d.name||user.displayName||'Focuser';
-      profile.handle=d.handle||'user';
-      profile.location=d.location||'Ulaanbaatar';
-      profile.bio=d.bio||'';
-    } else {
+    // Load profile from Firestore (graceful offline fallback)
+    try{
+      const snap=await getDoc(doc(db,'users',user.uid));
+      if(snap.exists()){
+        const d=snap.data();
+        profile.name=d.name||user.displayName||'Focuser';
+        profile.handle=d.handle||'user';
+        profile.location=d.location||'Ulaanbaatar';
+        profile.bio=d.bio||'';
+      } else {
+        profile.name=user.displayName||'Focuser';
+        profile.handle=(user.email||'').split('@')[0].toLowerCase().replace(/[^a-z0-9]/g,'');
+      }
+    }catch(_){
+      // Offline — use Firebase Auth display name
       profile.name=user.displayName||'Focuser';
       profile.handle=(user.email||'').split('@')[0].toLowerCase().replace(/[^a-z0-9]/g,'');
     }
-    // Load tasks from Firestore
     await loadTasks();
-    // Update UI
     document.getElementById('profile-display-name').textContent=profile.name;
     document.getElementById('profile-display-handle').textContent='@'+profile.handle+' · '+profile.location;
     document.getElementById('profile-display-bio').textContent=profile.bio;
     document.getElementById('profile-avatar-initials').textContent=profile.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
-    // Show email verify banner if needed
     if(!user.emailVerified && user.providerData[0]?.providerId==='password'){
       document.getElementById('verify-banner').classList.add('show');
     }
     document.getElementById('auth-screen').style.display='none';
     document.getElementById('main-app').style.display='block';
+    updateOnlineStatus();
     showToast('Welcome, '+profile.name.split(' ')[0]+'!');
-    // Reset loading states
     setLoading('login-btn',false,'Log in');
   } else {
     currentUser=null;
@@ -764,16 +831,25 @@ onAuthStateChanged(auth, async(user)=>{
 // ── Firestore: tasks ─────────────────────────────────────────────
 async function loadTasks(){
   if(!currentUser)return;
-  const q=query(collection(db,'users',currentUser.uid,'tasks'),orderBy('createdAt','asc'));
-  const snap=await getDocs(q);
-  tasks=[];
-  snap.forEach(d=>{tasks.push({id:d.id,...d.data()});});
-  if(tasks.length===0){
-    // Seed default tasks for new users
-    const defaults=['Read research paper','Write report outline'];
-    for(const name of defaults){
-      const ref=await addDoc(collection(db,'users',currentUser.uid,'tasks'),{name,sessions:0,done:false,createdAt:serverTimestamp()});
-      tasks.push({id:ref.id,name,sessions:0,done:false});
+  try{
+    const q=query(collection(db,'users',currentUser.uid,'tasks'),orderBy('createdAt','asc'));
+    const snap=await getDocs(q);
+    tasks=[];
+    snap.forEach(d=>{tasks.push({id:d.id,...d.data()});});
+    if(tasks.length===0){
+      const defaults=['Read research paper','Write report outline'];
+      for(const name of defaults){
+        const ref=await addDoc(collection(db,'users',currentUser.uid,'tasks'),{name,sessions:0,done:false,createdAt:serverTimestamp()});
+        tasks.push({id:ref.id,name,sessions:0,done:false});
+      }
+    }
+  }catch(_){
+    // Offline — start with empty tasks, they'll sync later
+    if(!tasks.length){
+      tasks=[
+        {id:'local1',name:'Read research paper',sessions:0,done:false},
+        {id:'local2',name:'Write report outline',sessions:0,done:false}
+      ];
     }
   }
   renderTasks();
@@ -782,7 +858,9 @@ async function loadTasks(){
 async function saveTask(task){
   if(!currentUser)return;
   if(task.id&&!task.id.startsWith('local')){
-    await updateDoc(doc(db,'users',currentUser.uid,'tasks',task.id),{name:task.name,sessions:task.sessions,done:task.done});
+    try{
+      await updateDoc(doc(db,'users',currentUser.uid,'tasks',task.id),{name:task.name,sessions:task.sessions,done:task.done});
+    }catch(_){}// Will sync when back online via persistence
   }
 }
 
@@ -792,8 +870,12 @@ window.addTask=async function(){
   inp.value='';
   const newTask={name,sessions:0,done:false};
   if(currentUser){
-    const ref=await addDoc(collection(db,'users',currentUser.uid,'tasks'),{...newTask,createdAt:serverTimestamp()});
-    tasks.push({id:ref.id,...newTask});
+    try{
+      const ref=await addDoc(collection(db,'users',currentUser.uid,'tasks'),{...newTask,createdAt:serverTimestamp()});
+      tasks.push({id:ref.id,...newTask});
+    }catch(_){
+      tasks.push({id:'local'+(nextId++),name,sessions:0,done:false});
+    }
   } else {
     tasks.push({id:'local'+(nextId++),name,sessions:0,done:false});
   }
@@ -813,8 +895,8 @@ function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60)
 function updateRing(){
   const offset=CIRC*(1-secsLeft/totalSecs);
   document.getElementById('ring').style.strokeDashoffset=offset;
-document.getElementById('ring').setAttribute('class', 'ring-fill'+(mode!=='focus'?' rest':''));
-} 
+  document.getElementById('ring').setAttribute('class','ring-fill'+(mode!=='focus'?' rest':''));
+}
 function updateDisplay(){document.getElementById('timer-display').textContent=fmt(secsLeft);updateRing();}
 
 window.updateDuration=function(m,val){
@@ -868,11 +950,12 @@ async function autoLogSession(){
     if(t)await saveTask(t);
     renderTasks();
   }
-  // Save session to Firestore
   if(currentUser){
-    await addDoc(collection(db,'users',currentUser.uid,'sessions'),{
-      task:taskName,dur:durMins,time:nowLabel(),createdAt:serverTimestamp()
-    });
+    try{
+      await addDoc(collection(db,'users',currentUser.uid,'sessions'),{
+        task:taskName,dur:durMins,time:nowLabel(),createdAt:serverTimestamp()
+      });
+    }catch(_){}// Queued for sync when online
   }
   const entry={task:taskName,dur:durMins,time:nowLabel()};
   sessionLog.unshift(entry);
@@ -978,8 +1061,10 @@ window.saveProfile=async function(){
   document.getElementById('profile-display-bio').textContent=profile.bio;
   document.getElementById('profile-avatar-initials').textContent=profile.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
   if(currentUser){
-    await updateDoc(doc(db,'users',currentUser.uid),{name:profile.name,handle:profile.handle,location:profile.location,bio:profile.bio});
-    await updateProfile(currentUser,{displayName:profile.name});
+    try{
+      await updateDoc(doc(db,'users',currentUser.uid),{name:profile.name,handle:profile.handle,location:profile.location,bio:profile.bio});
+      await updateProfile(currentUser,{displayName:profile.name});
+    }catch(_){}
   }
   closeModal('edit-modal');
   showToast('Profile saved!');
@@ -1038,6 +1123,7 @@ window.showTab=function(id){
 };
 
 // ── Init ─────────────────────────────────────────────────────────
+handleRedirectResult(); // Handle Google redirect result on page load
 updateDisplay();renderTasks();buildWeekChart();buildActivity();renderFeed();renderRecentLog();
 </script>
 </body>
