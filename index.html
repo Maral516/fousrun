@@ -813,8 +813,8 @@ function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60)
 function updateRing(){
   const offset=CIRC*(1-secsLeft/totalSecs);
   document.getElementById('ring').style.strokeDashoffset=offset;
-  document.getElementById('ring').className='ring-fill'+(mode!=='focus'?' rest':'');
-}
+document.getElementById('ring').setAttribute('class', 'ring-fill'+(mode!=='focus'?' rest':''));
+} 
 function updateDisplay(){document.getElementById('timer-display').textContent=fmt(secsLeft);updateRing();}
 
 window.updateDuration=function(m,val){
