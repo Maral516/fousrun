@@ -268,10 +268,13 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.5;}
         <label class="auth-label">Email</label>
         <input class="auth-input" id="login-email" type="email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()"/>
       </div>
-      <div class="auth-field">
-        <label class="auth-label">Password</label>
-        <input class="auth-input" id="login-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
-      </div>
+    <div class="auth-field">
+      <label class="auth-label">Password</label>
+        <div style="position:relative;">
+          <input class="auth-input" id="login-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" style="padding-right:38px;"/>
+          <button type="button" onclick="togglePw('login-pw',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--hint);padding:0;font-size:16px;"><i class="ti ti-eye"></i></button>
+        </div>
+    </div>
       <div class="forgot-link">
         <button type="button" onclick="doForgotPassword()">Forgot password?</button>
       </div>
@@ -297,7 +300,10 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.5;}
       </div>
       <div class="auth-field">
         <label class="auth-label">Password</label>
-        <input class="auth-input" id="signup-pw" type="password" placeholder="At least 6 characters" onkeydown="if(event.key==='Enter')doSignup()"/>
+        <div style="position:relative;">
+          <input class="auth-input" id="signup-pw" type="password" placeholder="At least 6 characters" onkeydown="if(event.key==='Enter')doSignup()" style="padding-right:38px;"/>
+          <button type="button" onclick="togglePw('signup-pw',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--hint);padding:0;font-size:16px;"><i class="ti ti-eye"></i></button>
+        </div>
       </div>
       <p class="auth-error" id="signup-error"></p>
       <p class="auth-success" id="signup-success"></p>
@@ -564,6 +570,14 @@ import {
   serverTimestamp,
   enableIndexedDbPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ── Toggle password visibility ───────────────────────────────────
+window.togglePw=function(inputId, btn){
+  const inp=document.getElementById(inputId);
+  const isHidden=inp.type==='password';
+  inp.type=isHidden?'text':'password';
+  btn.querySelector('i').className=isHidden?'ti ti-eye-off':'ti ti-eye';
+};
 
 // ── Firebase config ──────────────────────────────────────────────
 const firebaseConfig = {
