@@ -6,296 +6,702 @@
 <title>FocusRun</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --orange: #E8521A; --orange-light: #FF7A45; --orange-pale: #FFF0EA;
-    --green: #1DB954; --surface: #ffffff; --surface2: #f5f5f3;
-    --border: rgba(0,0,0,0.12); --text: #1a1a1a; --muted: #666;
-    --hint: #999; --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --surface: #1a1a1a; --surface2: #242424; --border: rgba(255,255,255,0.1); --text: #f0f0f0; --muted: #aaa; --hint: #666; }
-    .streak-badge { background: #3A1A0A !important; border-color: #7A3010 !important; color: #FF8C5A !important; }
-    .activity-day.l1 { background: #4A2010 !important; }
-    .activity-day.l2 { background: #7A3010 !important; }
-    .activity-day.l3 { background: #B84415 !important; }
-  }
-  body { font-family: var(--sans); background: var(--surface); color: var(--text); max-width: 480px; margin: 0 auto; min-height: 100vh; }
-  .app { border: 0.5px solid var(--border); min-height: 100vh; }
-  .header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem 1rem; border-bottom: 0.5px solid var(--border); }
-  .logo { display: flex; align-items: center; gap: 8px; }
-  .logo-icon { width: 28px; height: 28px; background: var(--orange); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-  .logo-icon i { color: #fff; font-size: 15px; }
-  .logo-text { font-family: var(--mono); font-size: 14px; font-weight: 700; letter-spacing: -0.5px; color: var(--text); }
-  .streak-badge { display: flex; align-items: center; gap: 5px; background: #FFF4EE; border: 0.5px solid #FFCFB8; border-radius: 20px; padding: 4px 10px; font-size: 12px; font-weight: 500; color: #C94010; }
-  .tabs { display: flex; padding: 0 1.5rem; border-bottom: 0.5px solid var(--border); }
-  .tab { padding: 0.6rem 1rem; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -0.5px; transition: color 0.15s; background: none; border-left: none; border-right: none; border-top: none; font-family: var(--sans); }
-  .tab.active { color: var(--orange); border-bottom-color: var(--orange); }
-  .section { display: none; padding: 1.25rem 1.5rem; }
-  .section.active { display: block; }
-  .timer-ring-wrap { display: flex; justify-content: center; margin: 1rem 0 1.25rem; }
-  .ring-bg { fill: none; stroke: var(--surface2); stroke-width: 8; }
-  .ring-fill { fill: none; stroke: var(--orange); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
-  .ring-fill.rest { stroke: var(--green); }
-  .timer-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
-  .timer-time { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--text); }
-  .timer-label { font-size: 11px; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; }
-  .mode-pills { display: flex; gap: 6px; margin-bottom: 1rem; }
-  .mode-pill { flex: 1; padding: 6px 0; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 20px; border: 0.5px solid var(--border); background: var(--surface2); color: var(--muted); transition: all 0.15s; font-family: var(--sans); }
-  .mode-pill.active { background: var(--orange); border-color: var(--orange); color: #fff; }
-  .mode-pill.rest-active { background: var(--green); border-color: var(--green); color: #fff; }
-  .controls { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 1.25rem; }
-  .ctrl-btn { display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 0.5px solid var(--border); background: var(--surface2); cursor: pointer; color: var(--text); transition: all 0.15s; font-family: var(--sans); }
-  .ctrl-btn:hover { opacity: 0.8; }
-  .ctrl-btn.primary { width: 52px; height: 52px; font-size: 20px; background: var(--orange); border-color: var(--orange); color: #fff; }
-  .ctrl-btn.primary.resting { background: var(--green); border-color: var(--green); }
-  .ctrl-btn.sm { width: 36px; height: 36px; font-size: 16px; }
-  .current-task-bar { display: flex; align-items: center; gap: 10px; background: var(--surface2); border-radius: 8px; padding: 10px 14px; margin-bottom: 1rem; cursor: pointer; border: 0.5px solid var(--border); transition: border-color 0.15s; }
-  .current-task-bar:hover { border-color: var(--orange); }
-  .task-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); flex-shrink: 0; }
-  .task-dot.green { background: var(--green); }
-  .task-name { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; }
-  .task-hint { font-size: 11px; color: var(--hint); }
-  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1.25rem; }
-  .stat-card { background: var(--surface2); border-radius: 8px; padding: 10px 12px; }
-  .stat-val { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--text); }
-  .stat-lbl { font-size: 10px; color: var(--hint); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.3px; }
-  .section-title { font-size: 11px; font-weight: 600; color: var(--hint); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-  .task-input-row { display: flex; gap: 8px; margin-bottom: 10px; }
-  .task-input-row input { flex: 1; font-size: 13px; padding: 7px 10px; border-radius: 8px; border: 0.5px solid var(--border); background: var(--surface2); color: var(--text); font-family: var(--sans); outline: none; }
-  .task-input-row input:focus { border-color: var(--orange); }
-  .add-btn { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; background: var(--orange); border: none; color: #fff; cursor: pointer; font-size: 18px; }
-  .task-list { display: flex; flex-direction: column; gap: 6px; }
-  .task-item { display: flex; align-items: center; gap: 10px; background: var(--surface2); border-radius: 8px; padding: 9px 12px; border: 0.5px solid var(--border); cursor: pointer; transition: border-color 0.12s; }
-  .task-item.running { border-color: var(--orange); }
-  .task-item.done { opacity: 0.5; }
-  .task-check { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px; background: var(--surface); color: transparent; transition: all 0.15s; cursor: pointer; }
-  .task-check.done { background: var(--green); border-color: var(--green); color: #fff; }
-  .task-check.running { border-color: var(--orange); }
-  .task-info { flex: 1; min-width: 0; }
-  .task-item-name { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .task-item-name.done { text-decoration: line-through; }
-  .task-sessions { font-size: 11px; color: var(--hint); margin-top: 1px; }
-  .task-sel-btn { font-size: 11px; color: var(--orange); font-weight: 500; cursor: pointer; background: none; border: none; font-family: var(--sans); padding: 0; }
-  .activity-weeks { display: flex; gap: 3px; }
-  .activity-day { width: 12px; height: 12px; border-radius: 2px; background: var(--surface2); }
-  .activity-day.l1 { background: #FFD4BA; }
-  .activity-day.l2 { background: #FF8C55; }
-  .activity-day.l3 { background: var(--orange); }
-  .activity-day.l4 { background: #C94010; }
-  .activity-week { display: flex; flex-direction: column; gap: 3px; }
-  .chart-bars { display: flex; align-items: flex-end; gap: 5px; height: 80px; margin-bottom: 4px; }
-  .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .chart-bar { width: 100%; border-radius: 3px 3px 0 0; background: var(--orange); opacity: 0.8; min-height: 3px; }
-  .chart-bar.today { opacity: 1; }
-  .chart-bar-lbl { font-size: 9px; color: var(--hint); }
-  .prs-list { display: flex; flex-direction: column; gap: 6px; }
-  .pr-item { display: flex; align-items: center; gap: 10px; background: var(--surface2); border-radius: 8px; padding: 10px 12px; border: 0.5px solid var(--border); }
-  .pr-icon { font-size: 18px; width: 32px; text-align: center; }
-  .pr-name { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; }
-  .pr-val { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--orange); }
-  .empty-hint { font-size: 13px; color: var(--hint); text-align: center; padding: 1rem 0; }
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --orange:#E8521A;--orange-light:#FF7A45;--orange-pale:#FFF0EA;
+  --green:#1DB954;--surface:#ffffff;--surface2:#f5f5f3;--surface3:#ececea;
+  --border:rgba(0,0,0,0.10);--text:#1a1a1a;--muted:#666;--hint:#999;
+  --mono:'Space Mono',monospace;--sans:'DM Sans',sans-serif;
+  --radius:10px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--surface:#161616;--surface2:#1f1f1f;--surface3:#2a2a2a;--border:rgba(255,255,255,0.09);--text:#f0f0f0;--muted:#aaa;--hint:#666;}
+  .streak-badge{background:#3A1A0A!important;border-color:#7A3010!important;color:#FF8C5A!important;}
+  .activity-day.l1{background:#4A2010!important;}
+  .activity-day.l2{background:#7A3010!important;}
+  .activity-day.l3{background:#B84415!important;}
+  .modal-overlay{background:rgba(0,0,0,0.7)!important;}
+  .modal-box{background:var(--surface);}
+  .feed-photo{border-color:var(--border);}
+}
+body{font-family:var(--sans);background:var(--surface);color:var(--text);max-width:480px;margin:0 auto;min-height:100vh;}
+.app{border:0.5px solid var(--border);min-height:100vh;position:relative;overflow:hidden;}
+
+/* ── HEADER ── */
+.header{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.4rem 0.9rem;border-bottom:0.5px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:50;}
+.logo{display:flex;align-items:center;gap:8px;}
+.logo-icon{width:26px;height:26px;background:var(--orange);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.logo-icon i{color:#fff;font-size:14px;}
+.logo-text{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:-0.5px;}
+.streak-badge{display:flex;align-items:center;gap:5px;background:#FFF4EE;border:0.5px solid #FFCFB8;border-radius:20px;padding:4px 10px;font-size:11px;font-weight:500;color:#C94010;cursor:pointer;}
+
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:0.5px solid var(--border);background:var(--surface);position:sticky;top:56px;z-index:49;}
+.tab{flex:1;padding:0.6rem 0;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;font-family:var(--sans);transition:color 0.15s;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.tab i{font-size:16px;}
+.tab.active{color:var(--orange);border-bottom-color:var(--orange);}
+.tab-label{font-size:10px;}
+
+/* ── SECTIONS ── */
+.section{display:none;padding:1.1rem 1.4rem;animation:fadeIn 0.18s ease;}
+.section.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── TIMER ── */
+.mode-pills{display:flex;gap:6px;margin-bottom:1rem;}
+.mode-pill{flex:1;padding:6px 0;font-size:12px;font-weight:500;cursor:pointer;border-radius:20px;border:0.5px solid var(--border);background:var(--surface2);color:var(--muted);transition:all 0.15s;font-family:var(--sans);}
+.mode-pill.active{background:var(--orange);border-color:var(--orange);color:#fff;}
+.mode-pill.rest-active{background:var(--green);border-color:var(--green);color:#fff;}
+.timer-ring-wrap{display:flex;justify-content:center;margin:0.8rem 0 1.1rem;}
+.ring-bg{fill:none;stroke:var(--surface2);stroke-width:8;}
+.ring-fill{fill:none;stroke:var(--orange);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1s linear;}
+.ring-fill.rest{stroke:var(--green);}
+.timer-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+.timer-time{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--text);}
+.timer-label{font-size:11px;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase;}
+.controls{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:1.1rem;}
+.ctrl-btn{display:flex;align-items:center;justify-content:center;border-radius:50%;border:0.5px solid var(--border);background:var(--surface2);cursor:pointer;color:var(--text);transition:all 0.15s;font-family:var(--sans);}
+.ctrl-btn.primary{width:52px;height:52px;font-size:20px;background:var(--orange);border-color:var(--orange);color:#fff;}
+.ctrl-btn.primary.resting{background:var(--green);border-color:var(--green);}
+.ctrl-btn.sm{width:36px;height:36px;font-size:16px;}
+.current-task-bar{display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:var(--radius);padding:10px 14px;margin-bottom:1rem;cursor:pointer;border:0.5px solid var(--border);transition:border-color 0.15s;}
+.current-task-bar:hover{border-color:var(--orange);}
+.task-dot{width:8px;height:8px;border-radius:50%;background:var(--orange);flex-shrink:0;}
+.task-dot.green{background:var(--green);}
+.task-name{font-size:13px;font-weight:500;flex:1;}
+.task-hint{font-size:11px;color:var(--hint);}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem;}
+.stat-card{background:var(--surface2);border-radius:var(--radius);padding:10px 12px;}
+.stat-val{font-family:var(--mono);font-size:18px;font-weight:700;}
+.stat-lbl{font-size:10px;color:var(--hint);margin-top:2px;text-transform:uppercase;letter-spacing:0.3px;}
+
+/* ── TASKS ── */
+.section-title{font-size:10px;font-weight:600;color:var(--hint);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;}
+.task-input-row{display:flex;gap:8px;margin-bottom:10px;}
+.task-input-row input{flex:1;font-size:13px;padding:7px 10px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--sans);outline:none;}
+.task-input-row input:focus{border-color:var(--orange);}
+.add-btn{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:var(--radius);background:var(--orange);border:none;color:#fff;cursor:pointer;font-size:18px;flex-shrink:0;}
+.task-list{display:flex;flex-direction:column;gap:6px;}
+.task-item{display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:var(--radius);padding:9px 12px;border:0.5px solid var(--border);cursor:pointer;transition:border-color 0.12s;}
+.task-item.running{border-color:var(--orange);}
+.task-item.done{opacity:0.5;}
+.task-check{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;background:var(--surface);color:transparent;transition:all 0.15s;cursor:pointer;}
+.task-check.done{background:var(--green);border-color:var(--green);color:#fff;}
+.task-check.running{border-color:var(--orange);}
+.task-info{flex:1;min-width:0;}
+.task-item-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.task-item-name.done{text-decoration:line-through;}
+.task-sessions{font-size:11px;color:var(--hint);margin-top:1px;}
+.task-sel-btn{font-size:11px;color:var(--orange);font-weight:500;cursor:pointer;background:none;border:none;font-family:var(--sans);padding:0;}
+.empty-hint{font-size:13px;color:var(--hint);text-align:center;padding:1.5rem 0;}
+
+/* ── PROGRESS ── */
+.chart-bars{display:flex;align-items:flex-end;gap:5px;height:80px;margin-bottom:4px;}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.chart-bar{width:100%;border-radius:3px 3px 0 0;background:var(--orange);opacity:0.75;min-height:3px;}
+.chart-bar.today{opacity:1;}
+.activity-weeks{display:flex;gap:3px;}
+.activity-day{width:12px;height:12px;border-radius:2px;background:var(--surface2);}
+.activity-day.l1{background:#FFD4BA;}
+.activity-day.l2{background:#FF8C55;}
+.activity-day.l3{background:var(--orange);}
+.activity-day.l4{background:#C94010;}
+.activity-week{display:flex;flex-direction:column;gap:3px;}
+.prs-list{display:flex;flex-direction:column;gap:6px;}
+.pr-item{display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:var(--radius);padding:10px 12px;border:0.5px solid var(--border);}
+.pr-icon{font-size:18px;width:32px;text-align:center;}
+.pr-name{font-size:13px;font-weight:500;flex:1;}
+.pr-val{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--orange);}
+
+/* ── FEED ── */
+.feed-list{display:flex;flex-direction:column;gap:12px;}
+.feed-card{background:var(--surface2);border-radius:var(--radius);border:0.5px solid var(--border);overflow:hidden;}
+.feed-card-header{display:flex;align-items:center;gap:10px;padding:10px 12px;}
+.feed-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;background:var(--surface3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--orange);overflow:hidden;}
+.feed-avatar img{width:100%;height:100%;object-fit:cover;}
+.feed-user-info{flex:1;}
+.feed-username{font-size:13px;font-weight:600;}
+.feed-time{font-size:11px;color:var(--hint);}
+.feed-body{padding:0 12px 10px;}
+.feed-title{font-size:14px;font-weight:600;margin-bottom:4px;}
+.feed-meta{display:flex;gap:14px;margin-bottom:8px;}
+.feed-meta-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted);}
+.feed-meta-item i{font-size:13px;color:var(--orange);}
+.feed-photo{width:100%;border-radius:8px;max-height:220px;object-fit:cover;display:block;border:0.5px solid var(--border);margin-bottom:8px;background:var(--surface3);}
+.feed-note{font-size:13px;color:var(--muted);font-style:italic;margin-bottom:8px;line-height:1.5;}
+.feed-actions{display:flex;gap:4px;border-top:0.5px solid var(--border);padding:8px 12px 0;}
+.feed-action-btn{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;font-family:var(--sans);transition:all 0.15s;}
+.feed-action-btn:hover,.feed-action-btn.active{color:var(--orange);background:var(--orange-pale);}
+.feed-action-btn i{font-size:15px;}
+.post-btn{display:flex;align-items:center;gap:6px;background:var(--orange);color:#fff;border:none;padding:8px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--sans);margin-bottom:12px;width:100%;justify-content:center;}
+.post-btn i{font-size:16px;}
+
+/* ── PROFILE ── */
+.profile-cover{height:110px;background:linear-gradient(135deg,#E8521A 0%,#FF7A45 50%,#C94010 100%);position:relative;border-radius:var(--radius) var(--radius) 0 0;margin:-1.1rem -1.4rem 0;overflow:hidden;}
+.profile-cover-img{width:100%;height:100%;object-fit:cover;}
+.profile-cover-edit{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.35);border:none;border-radius:6px;color:#fff;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;}
+.profile-avatar-wrap{position:relative;width:72px;margin:-36px 0 0 1.4rem;}
+.profile-avatar{width:72px;height:72px;border-radius:50%;border:3px solid var(--surface);object-fit:cover;background:var(--surface3);display:block;overflow:hidden;}
+.profile-avatar-edit{position:absolute;bottom:0;right:0;background:var(--orange);border:2px solid var(--surface);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:#fff;}
+.profile-name-row{display:flex;align-items:flex-start;justify-content:space-between;margin-top:8px;margin-bottom:2px;}
+.profile-name{font-size:18px;font-weight:700;font-family:var(--mono);}
+.profile-handle{font-size:12px;color:var(--muted);}
+.profile-bio{font-size:13px;color:var(--muted);margin:6px 0 12px;line-height:1.5;}
+.edit-profile-btn{border:0.5px solid var(--border);background:var(--surface2);border-radius:var(--radius);padding:7px 14px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--sans);color:var(--text);display:flex;align-items:center;gap:5px;white-space:nowrap;transition:border-color 0.15s;}
+.edit-profile-btn:hover{border-color:var(--orange);color:var(--orange);}
+.profile-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px;}
+.profile-stat{background:var(--surface2);border-radius:var(--radius);padding:8px;text-align:center;}
+.profile-stat-val{font-family:var(--mono);font-size:16px;font-weight:700;}
+.profile-stat-lbl{font-size:9px;color:var(--hint);text-transform:uppercase;letter-spacing:0.3px;margin-top:1px;}
+.profile-tabs{display:flex;gap:0;margin-bottom:12px;border-bottom:0.5px solid var(--border);}
+.profile-tab{flex:1;text-align:center;padding:8px 0;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;font-family:var(--sans);margin-bottom:-0.5px;transition:color 0.15s;}
+.profile-tab.active{color:var(--orange);border-bottom-color:var(--orange);}
+.profile-photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-bottom:14px;}
+.profile-photo-cell{aspect-ratio:1;background:var(--surface2);border-radius:4px;overflow:hidden;position:relative;cursor:pointer;}
+.profile-photo-cell img{width:100%;height:100%;object-fit:cover;display:block;}
+.profile-photo-cell .photo-overlay{position:absolute;inset:0;background:rgba(232,82,26,0.0);display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
+.profile-photo-cell:hover .photo-overlay{background:rgba(232,82,26,0.25);}
+.add-photo-cell{border:1.5px dashed var(--border);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;color:var(--hint);transition:border-color 0.15s;}
+.add-photo-cell:hover{border-color:var(--orange);color:var(--orange);}
+.add-photo-cell i{font-size:20px;}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.15s ease;}
+.modal-box{background:var(--surface);border-radius:16px 16px 0 0;width:100%;max-width:480px;padding:1.25rem 1.4rem 2rem;max-height:85vh;overflow-y:auto;}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 1rem;}
+.modal-title{font-size:15px;font-weight:700;margin-bottom:1rem;}
+.modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);margin-top:-2px;}
+.form-group{margin-bottom:12px;}
+.form-label{font-size:11px;font-weight:600;color:var(--hint);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:5px;display:block;}
+.form-input{width:100%;font-size:13px;padding:9px 11px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--sans);outline:none;transition:border-color 0.15s;}
+.form-input:focus{border-color:var(--orange);}
+textarea.form-input{resize:vertical;min-height:70px;line-height:1.5;}
+.save-btn{width:100%;padding:11px;background:var(--orange);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans);margin-top:6px;transition:opacity 0.15s;}
+.save-btn:hover{opacity:0.9;}
+.photo-upload-area{border:1.5px dashed var(--border);border-radius:var(--radius);padding:1.5rem;text-align:center;cursor:pointer;transition:all 0.15s;margin-bottom:12px;background:var(--surface2);}
+.photo-upload-area:hover{border-color:var(--orange);background:var(--orange-pale);}
+.photo-upload-area i{font-size:28px;color:var(--hint);display:block;margin-bottom:6px;}
+.photo-upload-area p{font-size:12px;color:var(--muted);}
+.photo-preview{width:100%;border-radius:var(--radius);max-height:180px;object-fit:cover;margin-bottom:12px;display:none;}
+.post-note-input{width:100%;font-size:13px;padding:9px 11px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--sans);outline:none;resize:none;min-height:70px;line-height:1.5;margin-bottom:12px;}
+.post-note-input:focus{border-color:var(--orange);}
+.chip-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.chip{padding:5px 12px;border-radius:20px;font-size:12px;border:0.5px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all 0.15s;}
+.chip.selected{background:var(--orange);border-color:var(--orange);color:#fff;}
+.notification-dot{width:7px;height:7px;background:var(--orange);border-radius:50%;position:absolute;top:4px;right:16px;}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="header">
-    <div class="logo">
-      <div class="logo-icon"><i class="ti ti-bolt"></i></div>
-      <span class="logo-text">focusrun</span>
-    </div>
-    <div class="streak-badge"><i class="ti ti-flame" style="font-size:13px"></i> <span id="streak-count">3</span> day streak</div>
-  </div>
 
-  <div class="tabs">
-    <button class="tab active" onclick="showTab('timer')">Timer</button>
-    <button class="tab" onclick="showTab('tasks')">Tasks</button>
-    <button class="tab" onclick="showTab('progress')">Progress</button>
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon"><i class="ti ti-bolt"></i></div>
+    <span class="logo-text">focusrun</span>
   </div>
+  <div class="streak-badge" onclick="showTab('progress')">
+    <i class="ti ti-flame" style="font-size:13px"></i>
+    <span id="streak-count">3</span> day streak
+  </div>
+</div>
 
-  <div class="section active" id="tab-timer">
-    <div class="mode-pills">
-      <button class="mode-pill active" id="pill-focus" onclick="setMode('focus')">Focus</button>
-      <button class="mode-pill" id="pill-short" onclick="setMode('short')">Short break</button>
-      <button class="mode-pill" id="pill-long" onclick="setMode('long')">Long break</button>
-    </div>
-    <div class="timer-ring-wrap">
-      <div style="position:relative;width:160px;height:160px;">
-        <svg width="160" height="160" viewBox="0 0 160 160">
-          <circle class="ring-bg" cx="80" cy="80" r="68"/>
-          <circle class="ring-fill" id="ring" cx="80" cy="80" r="68" stroke-dasharray="427.3" stroke-dashoffset="0" transform="rotate(-90 80 80)"/>
-        </svg>
-        <div class="timer-inner">
-          <span class="timer-time" id="timer-display">25:00</span>
-          <span class="timer-label" id="timer-label">focus time</span>
-        </div>
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="showTab('timer')"><i class="ti ti-bolt"></i><span class="tab-label">Timer</span></button>
+  <button class="tab" onclick="showTab('tasks')"><i class="ti ti-checklist"></i><span class="tab-label">Tasks</span></button>
+  <button class="tab" onclick="showTab('feed')" style="position:relative"><i class="ti ti-users"></i><span class="tab-label">Feed</span><span class="notification-dot" id="notif-dot"></span></button>
+  <button class="tab" onclick="showTab('progress')"><i class="ti ti-chart-bar"></i><span class="tab-label">Progress</span></button>
+  <button class="tab" onclick="showTab('profile')"><i class="ti ti-user"></i><span class="tab-label">Profile</span></button>
+</div>
+
+<!-- ═══════════ TIMER TAB ═══════════ -->
+<div class="section active" id="tab-timer">
+  <div class="mode-pills">
+    <button class="mode-pill active" id="pill-focus" onclick="setMode('focus')">Focus</button>
+    <button class="mode-pill" id="pill-short" onclick="setMode('short')">Short break</button>
+    <button class="mode-pill" id="pill-long" onclick="setMode('long')">Long break</button>
+  </div>
+  <div class="timer-ring-wrap">
+    <div style="position:relative;width:160px;height:160px;">
+      <svg width="160" height="160" viewBox="0 0 160 160">
+        <circle class="ring-bg" cx="80" cy="80" r="68"/>
+        <circle class="ring-fill" id="ring" cx="80" cy="80" r="68" stroke-dasharray="427.3" stroke-dashoffset="0" transform="rotate(-90 80 80)"/>
+      </svg>
+      <div class="timer-inner">
+        <span class="timer-time" id="timer-display">25:00</span>
+        <span class="timer-label" id="timer-label">focus time</span>
       </div>
     </div>
-    <div class="controls">
-      <button class="ctrl-btn sm" onclick="resetTimer()"><i class="ti ti-refresh"></i></button>
-      <button class="ctrl-btn primary" id="play-btn" onclick="toggleTimer()"><i class="ti ti-player-play" id="play-icon"></i></button>
-      <button class="ctrl-btn sm" onclick="skipSession()"><i class="ti ti-player-skip-forward"></i></button>
-    </div>
-    <div class="current-task-bar" onclick="showTab('tasks')">
-      <div class="task-dot" id="active-dot"></div>
-      <span class="task-name" id="active-task-name">No task selected</span>
-      <span class="task-hint">tap to pick →</span>
-    </div>
-    <div class="stats-row">
-      <div class="stat-card"><div class="stat-val" id="stat-today">0</div><div class="stat-lbl">Sessions today</div></div>
-      <div class="stat-card"><div class="stat-val" id="stat-mins">0m</div><div class="stat-lbl">Focus time</div></div>
-      <div class="stat-card"><div class="stat-val" id="stat-streak">3</div><div class="stat-lbl">Day streak</div></div>
-    </div>
   </div>
-
-  <div class="section" id="tab-tasks">
-    <div class="section-title">Add task</div>
-    <div class="task-input-row">
-      <input type="text" id="task-input" placeholder="e.g. Write project proposal…" maxlength="60" onkeydown="if(event.key==='Enter') addTask()"/>
-      <button class="add-btn" onclick="addTask()"><i class="ti ti-plus"></i></button>
-    </div>
-    <div class="section-title">queue</div>
-    <div class="task-list" id="task-list"></div>
+  <div class="controls">
+    <button class="ctrl-btn sm" onclick="resetTimer()"><i class="ti ti-refresh"></i></button>
+    <button class="ctrl-btn primary" id="play-btn" onclick="toggleTimer()"><i class="ti ti-player-play" id="play-icon"></i></button>
+    <button class="ctrl-btn sm" onclick="skipSession()"><i class="ti ti-player-skip-forward"></i></button>
   </div>
+  <div class="current-task-bar" onclick="showTab('tasks')">
+    <div class="task-dot" id="active-dot"></div>
+    <span class="task-name" id="active-task-name">No task selected</span>
+    <span class="task-hint">tap to pick →</span>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-val" id="stat-today">0</div><div class="stat-lbl">Sessions today</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-mins">0m</div><div class="stat-lbl">Focus time</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-streak">3</div><div class="stat-lbl">Day streak</div></div>
+  </div>
+  <div class="section-title" style="margin-bottom:6px">quick log</div>
+  <button class="post-btn" onclick="openPostModal()"><i class="ti ti-camera"></i> Log session with photo</button>
+</div>
 
-  <div class="section" id="tab-progress">
-    <div class="section-title">This week</div>
-    <div class="chart-bars" id="week-chart"></div>
-    <div style="display:flex;gap:5px;margin-bottom:1.25rem;" id="week-labels"></div>
-    <div class="section-title">Activity (last 7 weeks)</div>
-    <div id="activity-grid" style="margin-bottom:1.25rem;"></div>
-    <div class="section-title">personal records</div>
-    <div class="prs-list">
-      <div class="pr-item"><span class="pr-icon"><i class="ti ti-trophy" style="color:var(--orange)"></i></span><span class="pr-name">Longest focus session</span><span class="pr-val" id="pr-longest">25m</span></div>
-      <div class="pr-item"><span class="pr-icon"><i class="ti ti-flame" style="color:#E24B4A"></i></span><span class="pr-name">Best streak</span><span class="pr-val" id="pr-streak">3 days</span></div>
-      <div class="pr-item"><span class="pr-icon"><i class="ti ti-calendar-check" style="color:var(--green)"></i></span><span class="pr-name">Most sessions in a day</span><span class="pr-val" id="pr-sessions">4</span></div>
+<!-- ═══════════ TASKS TAB ═══════════ -->
+<div class="section" id="tab-tasks">
+  <div class="section-title">Add task</div>
+  <div class="task-input-row">
+    <input type="text" id="task-input" placeholder="e.g. Write project proposal…" maxlength="60" onkeydown="if(event.key==='Enter') addTask()"/>
+    <button class="add-btn" onclick="addTask()"><i class="ti ti-plus"></i></button>
+  </div>
+  <div class="section-title">Queue</div>
+  <div class="task-list" id="task-list"></div>
+</div>
+
+<!-- ═══════════ FEED TAB ═══════════ -->
+<div class="section" id="tab-feed">
+  <button class="post-btn" onclick="openPostModal()"><i class="ti ti-camera"></i> Share a focus session</button>
+  <div class="feed-list" id="feed-list"></div>
+</div>
+
+<!-- ═══════════ PROGRESS TAB ═══════════ -->
+<div class="section" id="tab-progress">
+  <div class="section-title">This week</div>
+  <div class="chart-bars" id="week-chart"></div>
+  <div style="display:flex;gap:5px;margin-bottom:1.25rem;" id="week-labels"></div>
+  <div class="section-title">Activity (last 7 weeks)</div>
+  <div id="activity-grid" style="margin-bottom:1.25rem;"></div>
+  <div class="section-title">Personal records</div>
+  <div class="prs-list">
+    <div class="pr-item"><span class="pr-icon"><i class="ti ti-trophy" style="color:var(--orange)"></i></span><span class="pr-name">Longest focus session</span><span class="pr-val" id="pr-longest">25m</span></div>
+    <div class="pr-item"><span class="pr-icon"><i class="ti ti-flame" style="color:#E24B4A"></i></span><span class="pr-name">Best streak</span><span class="pr-val" id="pr-streak">3 days</span></div>
+    <div class="pr-item"><span class="pr-icon"><i class="ti ti-calendar-check" style="color:var(--green)"></i></span><span class="pr-name">Most sessions in a day</span><span class="pr-val" id="pr-sessions">4</span></div>
+  </div>
+</div>
+
+<!-- ═══════════ PROFILE TAB ═══════════ -->
+<div class="section" id="tab-profile">
+  <div class="profile-cover" id="profile-cover-bg">
+    <img id="profile-cover-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;"/>
+    <button class="profile-cover-edit" onclick="triggerCoverUpload()" title="Change cover"><i class="ti ti-camera"></i></button>
+    <input type="file" id="cover-file-input" accept="image/*" style="display:none" onchange="handleCoverUpload(event)"/>
+  </div>
+  <div class="profile-avatar-wrap">
+    <div class="profile-avatar" id="profile-avatar-display">
+      <span id="profile-avatar-initials" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:var(--orange);">A</span>
+      <img id="profile-avatar-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;"/>
     </div>
+    <button class="profile-avatar-edit" onclick="triggerAvatarUpload()" title="Change photo"><i class="ti ti-camera"></i></button>
+    <input type="file" id="avatar-file-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)"/>
+  </div>
+  <div class="profile-name-row" style="padding-right:0;">
+    <div>
+      <div class="profile-name" id="profile-display-name">Alex Kim</div>
+      <div class="profile-handle" id="profile-display-handle">@alexkim · Ulaanbaatar</div>
+    </div>
+    <button class="edit-profile-btn" onclick="openEditProfile()"><i class="ti ti-pencil" style="font-size:13px"></i> Edit</button>
+  </div>
+  <div class="profile-bio" id="profile-display-bio">Deep work enthusiast. Building in public. ☕→⚡</div>
+  <div class="profile-stats-row">
+    <div class="profile-stat"><div class="profile-stat-val" id="ps-sessions">47</div><div class="profile-stat-lbl">Sessions</div></div>
+    <div class="profile-stat"><div class="profile-stat-val" id="ps-hours">19h</div><div class="profile-stat-lbl">Focus hrs</div></div>
+    <div class="profile-stat"><div class="profile-stat-val" id="ps-streak">3</div><div class="profile-stat-lbl">Streak</div></div>
+    <div class="profile-stat"><div class="profile-stat-val" id="ps-followers">12</div><div class="profile-stat-lbl">Followers</div></div>
+  </div>
+  <div class="profile-tabs">
+    <button class="profile-tab active" onclick="switchProfileTab('sessions')">Sessions</button>
+    <button class="profile-tab" onclick="switchProfileTab('photos')">Photos</button>
+    <button class="profile-tab" onclick="switchProfileTab('badges')">Badges</button>
+  </div>
+  <div id="profile-tab-sessions"></div>
+  <div id="profile-tab-photos" style="display:none"></div>
+  <div id="profile-tab-badges" style="display:none"></div>
+</div>
+
+<!-- ═══════════ POST MODAL ═══════════ -->
+<div class="modal-overlay" id="post-modal" style="display:none" onclick="closeModalOutside(event,'post-modal')">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <span class="modal-title" style="margin-bottom:0">Log focus session</span>
+      <button class="modal-close" onclick="closeModal('post-modal')">×</button>
+    </div>
+    <label class="photo-upload-area" for="post-photo-input" id="photo-upload-label">
+      <i class="ti ti-photo-plus"></i>
+      <p>Tap to upload a photo <span style="color:var(--hint);font-size:11px;display:block;margin-top:2px;">Optional — your workspace, setup, progress…</span></p>
+    </label>
+    <input type="file" id="post-photo-input" accept="image/*" style="display:none" onchange="handlePostPhoto(event)"/>
+    <img id="post-photo-preview" class="photo-preview" alt="preview"/>
+    <div class="form-group">
+      <label class="form-label">Session title</label>
+      <input class="form-input" id="post-title" placeholder="e.g. Deep work: thesis chapter 3" maxlength="60"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Duration</label>
+      <div style="display:flex;gap:8px;">
+        <input class="form-input" id="post-duration" type="number" placeholder="25" min="1" max="480" style="width:80px;flex:none;"/>
+        <span style="line-height:36px;font-size:13px;color:var(--muted);">minutes</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note <span style="color:var(--hint);font-weight:400;">(optional)</span></label>
+      <textarea class="form-input" id="post-note" placeholder="What did you accomplish? Any wins or reflections…" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mood</label>
+      <div class="chip-row" id="mood-chips">
+        <button class="chip" onclick="toggleMood(this,'🔥 On fire')">🔥 On fire</button>
+        <button class="chip" onclick="toggleMood(this,'⚡ Energized')">⚡ Energized</button>
+        <button class="chip" onclick="toggleMood(this,'😤 Grinding')">😤 Grinding</button>
+        <button class="chip" onclick="toggleMood(this,'🧘 Calm')">🧘 Calm</button>
+        <button class="chip" onclick="toggleMood(this,'😴 Tired')">😴 Tired</button>
+      </div>
+    </div>
+    <button class="save-btn" onclick="submitPost()">Share to feed</button>
+  </div>
+</div>
+
+<!-- ═══════════ EDIT PROFILE MODAL ═══════════ -->
+<div class="modal-overlay" id="edit-modal" style="display:none" onclick="closeModalOutside(event,'edit-modal')">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <span class="modal-title" style="margin-bottom:0">Edit profile</span>
+      <button class="modal-close" onclick="closeModal('edit-modal')">×</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Display name</label>
+      <input class="form-input" id="edit-name" placeholder="Your name" maxlength="40"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input class="form-input" id="edit-handle" placeholder="@yourhandle" maxlength="30"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Location</label>
+      <input class="form-input" id="edit-location" placeholder="City, Country" maxlength="40"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Bio</label>
+      <textarea class="form-input" id="edit-bio" placeholder="Tell the community about yourself…" rows="3" maxlength="160"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Focus goal (sessions/day)</label>
+      <input class="form-input" id="edit-goal" type="number" placeholder="4" min="1" max="20"/>
+    </div>
+    <button class="save-btn" onclick="saveProfile()">Save changes</button>
   </div>
 </div>
 
 <script>
-const MODES = { focus: 25*60, short: 5*60, long: 15*60 };
-const CIRC = 2 * Math.PI * 68;
-let mode = 'focus', totalSecs = MODES.focus, secsLeft = MODES.focus;
-let running = false, interval = null;
-let todaySessions = 0, todayMins = 0;
-let tasks = [
-  { id: 1, name: 'Read research paper', sessions: 2, done: false },
-  { id: 2, name: 'Write report outline', sessions: 0, done: false },
+/* ─── STATE ─── */
+const MODES={focus:25*60,short:5*60,long:15*60};
+const CIRC=2*Math.PI*68;
+let mode='focus',totalSecs=MODES.focus,secsLeft=MODES.focus;
+let running=false,interval=null;
+let todaySessions=0,todayMins=0;
+const weekData=[3,5,2,7,4,6,0];
+const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const todayIdx=(new Date().getDay()+6)%7;
+
+let tasks=[
+  {id:1,name:'Read research paper',sessions:2,done:false},
+  {id:2,name:'Write report outline',sessions:0,done:false},
 ];
-let activeTaskId = null, nextId = 3;
-const weekData = [3,5,2,7,4,6,0];
-const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const todayIdx = (new Date().getDay()+6)%7;
+let activeTaskId=null,nextId=3;
 
-function fmt(s){ return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+let profile={name:'Alex Kim',handle:'alexkim',location:'Ulaanbaatar',bio:'Deep work enthusiast. Building in public. ☕→⚡',goal:4};
+let selectedMood='';
+let postPhotoData=null;
+let profilePhotos=[]; // stored data URLs
+let profileTab='sessions';
 
+const samplePhotos=[
+  {url:'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400&q=80',title:'Morning session',duration:25,mood:'⚡ Energized',note:'Got 3 tasks done before noon!',user:'Alex Kim',handle:'alexkim',time:'2h ago',likes:4,liked:false},
+  {url:'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&q=80',title:'Study group deep work',duration:50,mood:'🔥 On fire',note:'',user:'Jordan Lee',handle:'jordanlee',time:'4h ago',likes:11,liked:false},
+  {url:'',title:'Quiet grind',duration:25,mood:'😤 Grinding',note:'No distractions. Pure focus.',user:'Sam Okonkwo',handle:'samokonkwo',time:'Yesterday',likes:7,liked:false},
+  {url:'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=400&q=80',title:'Coffee shop sprint',duration:35,mood:'🔥 On fire',note:'',user:'Maya Patel',handle:'mayapatel',time:'Yesterday',likes:15,liked:true},
+];
+
+let feedPosts=[...samplePhotos];
+
+/* ─── TIMER ─── */
+function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
 function updateRing(){
-  const offset = CIRC * (1 - secsLeft/totalSecs);
-  document.getElementById('ring').style.strokeDashoffset = offset;
-  document.getElementById('ring').className = 'ring-fill' + (mode!=='focus'?' rest':'');
+  const offset=CIRC*(1-secsLeft/totalSecs);
+  document.getElementById('ring').style.strokeDashoffset=offset;
+  document.getElementById('ring').className='ring-fill'+(mode!=='focus'?' rest':'');
 }
-
-function updateDisplay(){ document.getElementById('timer-display').textContent = fmt(secsLeft); updateRing(); }
-
+function updateDisplay(){document.getElementById('timer-display').textContent=fmt(secsLeft);updateRing();}
 function setMode(m){
-  if(running) return;
-  mode = m; totalSecs = MODES[m]; secsLeft = totalSecs;
-  ['focus','short','long'].forEach(k => {
-    document.getElementById('pill-'+k).className = 'mode-pill' + (k===m?(m==='focus'?' active':' rest-active'):'');
-  });
-  document.getElementById('timer-label').textContent = m==='focus'?'focus time':m==='short'?'short break':'long break';
-  document.getElementById('play-btn').className = 'ctrl-btn primary' + (m!=='focus'?' resting':'');
+  if(running)return;
+  mode=m;totalSecs=MODES[m];secsLeft=totalSecs;
+  ['focus','short','long'].forEach(k=>{document.getElementById('pill-'+k).className='mode-pill'+(k===m?(m==='focus'?' active':' rest-active'):'');});
+  document.getElementById('timer-label').textContent=m==='focus'?'focus time':m==='short'?'short break':'long break';
+  document.getElementById('play-btn').className='ctrl-btn primary'+(m!=='focus'?' resting':'');
   updateDisplay();
 }
-
 function toggleTimer(){
-  if(running){
-    clearInterval(interval); running = false;
-    document.getElementById('play-icon').className = 'ti ti-player-play';
-  } else {
-    running = true;
-    document.getElementById('play-icon').className = 'ti ti-player-pause';
-    interval = setInterval(()=>{
-      secsLeft--;
-      updateDisplay();
+  if(running){clearInterval(interval);running=false;document.getElementById('play-icon').className='ti ti-player-play';}
+  else{
+    running=true;document.getElementById('play-icon').className='ti ti-player-pause';
+    interval=setInterval(()=>{
+      secsLeft--;updateDisplay();
       if(secsLeft<=0){
-        clearInterval(interval); running = false;
-        document.getElementById('play-icon').className = 'ti ti-player-play';
+        clearInterval(interval);running=false;document.getElementById('play-icon').className='ti ti-player-play';
         if(mode==='focus'){
-          todaySessions++; todayMins+=25;
-          document.getElementById('stat-today').textContent = todaySessions;
-          document.getElementById('stat-mins').textContent = todayMins+'m';
-          weekData[todayIdx] = todaySessions;
-          if(activeTaskId!==null){ tasks=tasks.map(t=>t.id===activeTaskId?{...t,sessions:t.sessions+1}:t); renderTasks(); }
-          buildWeekChart(); buildActivity();
+          todaySessions++;todayMins+=25;
+          document.getElementById('stat-today').textContent=todaySessions;
+          document.getElementById('stat-mins').textContent=todayMins+'m';
+          weekData[todayIdx]=todaySessions;
+          if(activeTaskId!==null){tasks=tasks.map(t=>t.id===activeTaskId?{...t,sessions:t.sessions+1}:t);renderTasks();}
+          buildWeekChart();buildActivity();
+          document.getElementById('notif-dot').style.display='block';
         }
-        secsLeft=0; updateDisplay();
+        secsLeft=0;updateDisplay();
       }
     },1000);
   }
 }
+function resetTimer(){clearInterval(interval);running=false;secsLeft=totalSecs;document.getElementById('play-icon').className='ti ti-player-play';updateDisplay();}
+function skipSession(){clearInterval(interval);running=false;document.getElementById('play-icon').className='ti ti-player-play';secsLeft=0;updateDisplay();}
 
-function resetTimer(){ clearInterval(interval); running=false; secsLeft=totalSecs; document.getElementById('play-icon').className='ti ti-player-play'; updateDisplay(); }
-function skipSession(){ clearInterval(interval); running=false; document.getElementById('play-icon').className='ti ti-player-play'; secsLeft=0; updateDisplay(); }
-
-function selectTask(id){
-  activeTaskId=id;
-  const t=tasks.find(t=>t.id===id);
-  document.getElementById('active-task-name').textContent=t?t.name:'No task selected';
-  renderTasks(); showTab('timer');
-}
-
-function toggleDone(id){
-  tasks=tasks.map(t=>t.id===id?{...t,done:!t.done}:t);
-  if(activeTaskId===id&&tasks.find(t=>t.id===id).done){ activeTaskId=null; document.getElementById('active-task-name').textContent='No task selected'; }
-  renderTasks();
-}
-
-function addTask(){
-  const inp=document.getElementById('task-input'), name=inp.value.trim();
-  if(!name) return;
-  tasks.push({id:nextId++,name,sessions:0,done:false});
-  inp.value=''; renderTasks();
-}
-
+/* ─── TASKS ─── */
+function selectTask(id){activeTaskId=id;const t=tasks.find(t=>t.id===id);document.getElementById('active-task-name').textContent=t?t.name:'No task selected';renderTasks();showTab('timer');}
+function toggleDone(id){tasks=tasks.map(t=>t.id===id?{...t,done:!t.done}:t);if(activeTaskId===id&&tasks.find(t=>t.id===id).done){activeTaskId=null;document.getElementById('active-task-name').textContent='No task selected';}renderTasks();}
+function addTask(){const inp=document.getElementById('task-input'),name=inp.value.trim();if(!name)return;tasks.push({id:nextId++,name,sessions:0,done:false});inp.value='';renderTasks();}
 function renderTasks(){
   const list=document.getElementById('task-list');
   if(!tasks.length){list.innerHTML='<div class="empty-hint">No tasks yet — add one above</div>';return;}
   list.innerHTML=tasks.map(t=>`
     <div class="task-item${t.id===activeTaskId?' running':''}${t.done?' done':''}">
-      <div class="task-check${t.done?' done':''}${t.id===activeTaskId?' running':''}" onclick="toggleDone(${t.id})">
-        ${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}
-      </div>
-      <div class="task-info">
-        <div class="task-item-name${t.done?' done':''}">${t.name}</div>
-        <div class="task-sessions">${t.sessions} session${t.sessions!==1?'s':''}</div>
-      </div>
+      <div class="task-check${t.done?' done':''}${t.id===activeTaskId?' running':''}" onclick="toggleDone(${t.id})">${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}</div>
+      <div class="task-info"><div class="task-item-name${t.done?' done':''}">${t.name}</div><div class="task-sessions">${t.sessions} session${t.sessions!==1?'s':''}</div></div>
       ${!t.done?`<button class="task-sel-btn" onclick="selectTask(${t.id})">${t.id===activeTaskId?'active':'focus →'}</button>`:''}
     </div>`).join('');
 }
 
+/* ─── PROGRESS ─── */
 function buildWeekChart(){
   const maxV=Math.max(...weekData,1);
   document.getElementById('week-chart').innerHTML=weekData.map((v,i)=>`<div class="chart-bar-wrap"><div class="chart-bar${i===todayIdx?' today':''}" style="height:${Math.max(3,Math.round((v/maxV)*80))}px"></div></div>`).join('');
   document.getElementById('week-labels').innerHTML=days.map((d,i)=>`<div style="flex:1;text-align:center;font-size:9px;color:${i===todayIdx?'var(--orange)':'var(--hint)'};">${d}</div>`).join('');
 }
-
 function buildActivity(){
   const levels=['','l1','l2','l3','l4'];
   const weeks=Array.from({length:7},(_,w)=>Array.from({length:7},(_,d)=>w===6&&d===todayIdx?Math.min(4,todaySessions+1):(Math.random()<0.35?0:Math.floor(Math.random()*4)+1)));
   document.getElementById('activity-grid').innerHTML=`<div class="activity-weeks">${weeks.map(w=>`<div class="activity-week">${w.map(l=>`<div class="activity-day ${levels[l]}"></div>`).join('')}</div>`).join('')}</div>`;
 }
 
+/* ─── FEED ─── */
+function renderFeed(){
+  const list=document.getElementById('feed-list');
+  if(!feedPosts.length){list.innerHTML='<div class="empty-hint">No posts yet — be the first!</div>';return;}
+  list.innerHTML=feedPosts.map((p,i)=>{
+    const initials=p.user.split(' ').map(n=>n[0]).join('').slice(0,2);
+    return `<div class="feed-card">
+      <div class="feed-card-header">
+        <div class="feed-avatar">${initials}</div>
+        <div class="feed-user-info"><div class="feed-username">${p.user}</div><div class="feed-time">@${p.handle} · ${p.time}</div></div>
+      </div>
+      <div class="feed-body">
+        <div class="feed-title">${p.title}</div>
+        <div class="feed-meta">
+          <div class="feed-meta-item"><i class="ti ti-clock"></i>${p.duration}m</div>
+          ${p.mood?`<div class="feed-meta-item">${p.mood}</div>`:''}
+        </div>
+        ${p.url?`<img src="${p.url}" class="feed-photo" alt="${p.title}" onerror="this.style.display='none'"/>`:''}
+        ${p.note?`<div class="feed-note">"${p.note}"</div>`:''}
+      </div>
+      <div class="feed-actions">
+        <button class="feed-action-btn${p.liked?' active':''}" onclick="toggleLike(${i})"><i class="ti ti-heart${p.liked?'-filled':''}"></i>${p.likes}</button>
+        <button class="feed-action-btn"><i class="ti ti-message-circle"></i>Reply</button>
+        <button class="feed-action-btn"><i class="ti ti-share"></i>Share</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleLike(i){
+  feedPosts[i].liked=!feedPosts[i].liked;
+  feedPosts[i].likes+=feedPosts[i].liked?1:-1;
+  renderFeed();
+}
+
+/* ─── POST MODAL ─── */
+function openPostModal(){
+  // Prefill duration from session if applicable
+  document.getElementById('post-duration').value=mode==='focus'?25:'';
+  document.getElementById('post-title').value='';
+  document.getElementById('post-note').value='';
+  document.getElementById('post-photo-preview').style.display='none';
+  document.getElementById('photo-upload-label').style.display='flex';
+  postPhotoData=null;selectedMood='';
+  document.querySelectorAll('#mood-chips .chip').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('post-modal').style.display='flex';
+}
+function handlePostPhoto(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    postPhotoData=ev.target.result;
+    const prev=document.getElementById('post-photo-preview');
+    prev.src=postPhotoData;prev.style.display='block';
+    document.getElementById('photo-upload-label').style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+function toggleMood(btn,mood){
+  document.querySelectorAll('#mood-chips .chip').forEach(c=>c.classList.remove('selected'));
+  if(selectedMood===mood){selectedMood='';}else{btn.classList.add('selected');selectedMood=mood;}
+}
+function submitPost(){
+  const title=document.getElementById('post-title').value.trim();
+  if(!title){document.getElementById('post-title').focus();return;}
+  const dur=parseInt(document.getElementById('post-duration').value)||25;
+  const note=document.getElementById('post-note').value.trim();
+  const newPost={
+    url:postPhotoData||'',title,duration:dur,mood:selectedMood,note,
+    user:profile.name,handle:profile.handle,time:'Just now',likes:0,liked:false
+  };
+  feedPosts.unshift(newPost);
+  if(postPhotoData)profilePhotos.unshift({url:postPhotoData,title,time:'Just now'});
+  renderFeed();renderProfilePhotos();
+  closeModal('post-modal');
+  showTab('feed');
+  document.getElementById('notif-dot').style.display='none';
+}
+
+/* ─── PROFILE ─── */
+function openEditProfile(){
+  document.getElementById('edit-name').value=profile.name;
+  document.getElementById('edit-handle').value='@'+profile.handle;
+  document.getElementById('edit-location').value=profile.location;
+  document.getElementById('edit-bio').value=profile.bio;
+  document.getElementById('edit-goal').value=profile.goal;
+  document.getElementById('edit-modal').style.display='flex';
+}
+function saveProfile(){
+  profile.name=document.getElementById('edit-name').value.trim()||profile.name;
+  profile.handle=(document.getElementById('edit-handle').value.replace('@','')).trim()||profile.handle;
+  profile.location=document.getElementById('edit-location').value.trim()||profile.location;
+  profile.bio=document.getElementById('edit-bio').value.trim();
+  profile.goal=parseInt(document.getElementById('edit-goal').value)||profile.goal;
+  document.getElementById('profile-display-name').textContent=profile.name;
+  document.getElementById('profile-display-handle').textContent=`@${profile.handle} · ${profile.location}`;
+  document.getElementById('profile-display-bio').textContent=profile.bio;
+  document.getElementById('profile-avatar-initials').textContent=profile.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  closeModal('edit-modal');
+}
+
+function triggerAvatarUpload(){document.getElementById('avatar-file-input').click();}
+function handleAvatarUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=document.getElementById('profile-avatar-img');
+    img.src=ev.target.result;img.style.display='block';
+    document.getElementById('profile-avatar-initials').style.display='none';
+  };reader.readAsDataURL(file);
+}
+function triggerCoverUpload(){document.getElementById('cover-file-input').click();}
+function handleCoverUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=document.getElementById('profile-cover-img');
+    img.src=ev.target.result;img.style.display='block';
+    document.getElementById('profile-cover-bg').style.background='none';
+  };reader.readAsDataURL(file);
+}
+
+function switchProfileTab(tab){
+  profileTab=tab;
+  document.querySelectorAll('.profile-tab').forEach((b,i)=>{
+    const tabs=['sessions','photos','badges'];
+    b.classList.toggle('active',tabs[i]===tab);
+  });
+  document.getElementById('profile-tab-sessions').style.display=tab==='sessions'?'block':'none';
+  document.getElementById('profile-tab-photos').style.display=tab==='photos'?'block':'none';
+  document.getElementById('profile-tab-badges').style.display=tab==='badges'?'block':'none';
+  if(tab==='photos')renderProfilePhotos();
+  if(tab==='badges')renderBadges();
+  if(tab==='sessions')renderProfileSessions();
+}
+
+function renderProfileSessions(){
+  const el=document.getElementById('profile-tab-sessions');
+  const recent=[
+    {title:'Deep work block',dur:25,mood:'🔥 On fire',time:'Today'},
+    {title:'Writing sprint',dur:50,mood:'⚡ Energized',time:'Yesterday'},
+    {title:'Research review',dur:25,mood:'🧘 Calm',time:'2 days ago'},
+    {title:'Coding session',dur:25,mood:'😤 Grinding',time:'3 days ago'},
+  ];
+  el.innerHTML=recent.map(s=>`
+    <div class="task-item" style="margin-bottom:6px;">
+      <div class="task-info">
+        <div class="task-item-name">${s.title}</div>
+        <div class="task-sessions">${s.dur}m · ${s.mood} · ${s.time}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderProfilePhotos(){
+  const el=document.getElementById('profile-tab-photos');
+  const allPhotos=[...profilePhotos,...samplePhotos.filter(p=>p.url&&p.handle==='alexkim')];
+  let html=`<div class="profile-photo-grid">
+    <div class="add-photo-cell profile-photo-cell" onclick="openPostModal()"><i class="ti ti-plus"></i><span>Add</span></div>`;
+  allPhotos.forEach(p=>{
+    html+=`<div class="profile-photo-cell"><img src="${p.url}" alt="${p.title||''}"/><div class="photo-overlay"></div></div>`;
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+function renderBadges(){
+  const badges=[
+    {icon:'🔥',name:'3-Day Streak',desc:'Focused 3 days in a row',earned:true},
+    {icon:'⚡',name:'First Session',desc:'Completed your first focus block',earned:true},
+    {icon:'📸',name:'Documented',desc:'Shared a session with photo',earned:profilePhotos.length>0},
+    {icon:'🏆',name:'Week Warrior',desc:'7-day streak',earned:false},
+    {icon:'🚀',name:'Century',desc:'100 focus sessions',earned:false},
+    {icon:'💎',name:'Deep Work Pro',desc:'50 hours of total focus',earned:false},
+  ];
+  const el=document.getElementById('profile-tab-badges');
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+    ${badges.map(b=>`
+      <div style="background:var(--surface2);border-radius:var(--radius);padding:12px 8px;text-align:center;border:0.5px solid var(--border);opacity:${b.earned?1:0.4};">
+        <div style="font-size:24px;margin-bottom:4px;">${b.icon}</div>
+        <div style="font-size:11px;font-weight:600;margin-bottom:2px;">${b.name}</div>
+        <div style="font-size:10px;color:var(--hint);line-height:1.3;">${b.desc}</div>
+      </div>`).join('')}
+  </div>`;
+}
+
+/* ─── MODALS ─── */
+function closeModal(id){document.getElementById(id).style.display='none';}
+function closeModalOutside(e,id){if(e.target.id===id)closeModal(id);}
+
+/* ─── TABS ─── */
 function showTab(id){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
-  document.querySelectorAll('.tab').forEach(t=>{if(t.textContent.toLowerCase().includes(id))t.classList.add('active');});
+  const labels={timer:0,tasks:1,feed:2,progress:3,profile:4};
+  if(labels[id]!==undefined)document.querySelectorAll('.tab')[labels[id]].classList.add('active');
+  if(id==='feed'){document.getElementById('notif-dot').style.display='none';renderFeed();}
+  if(id==='profile'){renderProfileSessions();}
 }
 
-updateDisplay(); renderTasks(); buildWeekChart(); buildActivity();
+/* ─── INIT ─── */
+updateDisplay();renderTasks();buildWeekChart();buildActivity();renderFeed();renderProfileSessions();
 </script>
 </body>
 </html>
