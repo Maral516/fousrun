@@ -45,12 +45,20 @@ body{font-family:var(--sans);background:var(--surface);color:var(--text);max-wid
 .auth-label{font-size:11px;font-weight:600;color:var(--hint);text-transform:uppercase;letter-spacing:0.4px;display:block;margin-bottom:4px;}
 .auth-input{width:100%;font-size:13px;padding:9px 11px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--sans);outline:none;transition:border-color 0.15s;}
 .auth-input:focus{border-color:var(--orange);}
-.auth-btn{width:100%;padding:11px;background:var(--orange);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans);margin-top:6px;transition:opacity 0.15s;}
+.auth-btn{width:100%;padding:11px;background:var(--orange);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans);margin-top:6px;transition:opacity 0.15s;display:flex;align-items:center;justify-content:center;gap:8px;}
 .auth-btn:hover{opacity:0.9;}
-.auth-divider{text-align:center;font-size:12px;color:var(--hint);margin:12px 0;}
+.auth-btn:disabled{opacity:0.6;cursor:not-allowed;}
+.auth-divider{text-align:center;font-size:12px;color:var(--hint);margin:12px 0;position:relative;}
+.auth-divider::before,.auth-divider::after{content:'';position:absolute;top:50%;width:42%;height:0.5px;background:var(--border);}
+.auth-divider::before{left:0;}
+.auth-divider::after{right:0;}
 .auth-social{width:100%;padding:9px;border:0.5px solid var(--border);background:var(--surface2);border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--sans);color:var(--text);display:flex;align-items:center;justify-content:center;gap:8px;transition:border-color 0.15s;}
 .auth-social:hover{border-color:var(--orange);}
-.auth-error{font-size:12px;color:#E24B4A;margin-top:6px;display:none;}
+.auth-social:disabled{opacity:0.6;cursor:not-allowed;}
+.auth-error{font-size:12px;color:#E24B4A;margin-top:8px;padding:8px 10px;background:#FFF0F0;border-radius:6px;border:0.5px solid #FFCFCF;display:none;line-height:1.4;}
+.auth-success{font-size:12px;color:#1a7a3a;margin-top:8px;padding:8px 10px;background:#F0FFF4;border-radius:6px;border:0.5px solid #B2F0C8;display:none;line-height:1.4;}
+.auth-loading{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* HEADER */
 .header{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.4rem 0.9rem;border-bottom:0.5px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:50;}
@@ -205,7 +213,7 @@ body{font-family:var(--sans);background:var(--surface);color:var(--text);max-wid
 .form-input{width:100%;font-size:13px;padding:9px 11px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:var(--sans);outline:none;transition:border-color 0.15s;}
 .form-input:focus{border-color:var(--orange);}
 textarea.form-input{resize:vertical;min-height:70px;line-height:1.5;}
-.save-btn{width:100%;padding:11px;background:var(--orange);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans);margin-top:6px;transition:opacity 0.15s;}
+.save-btn{width:100%;padding:11px;background:var(--orange);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans);margin-top:6px;transition:opacity 0.15s;display:flex;align-items:center;justify-content:center;gap:8px;}
 .save-btn:hover{opacity:0.9;}
 .photo-upload-area{border:1.5px dashed var(--border);border-radius:var(--radius);padding:1.5rem;text-align:center;cursor:pointer;transition:all 0.15s;margin-bottom:12px;background:var(--surface2);display:flex;flex-direction:column;align-items:center;}
 .photo-upload-area:hover{border-color:var(--orange);background:var(--orange-pale);}
@@ -221,6 +229,13 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.5;}
 .toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--orange);color:#fff;border-radius:20px;padding:8px 18px;font-size:13px;font-weight:500;z-index:999;display:none;white-space:nowrap;}
 .toast.show{display:block;animation:toastIn 0.3s ease;}
 @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* VERIFY EMAIL BANNER */
+.verify-banner{background:#FFF8E6;border:0.5px solid #FFE0A0;border-radius:var(--radius);padding:10px 14px;margin-bottom:1rem;display:none;align-items:center;gap:10px;}
+.verify-banner.show{display:flex;}
+.verify-banner i{color:#E8A000;font-size:18px;flex-shrink:0;}
+.verify-banner-text{font-size:12px;color:#7A5500;flex:1;line-height:1.4;}
+.verify-banner-btn{font-size:11px;font-weight:600;color:#E8A000;background:none;border:none;cursor:pointer;font-family:var(--sans);white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -237,6 +252,8 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.5;}
       <button class="auth-tab active" id="auth-tab-login" onclick="switchAuthTab('login')">Log in</button>
       <button class="auth-tab" id="auth-tab-signup" onclick="switchAuthTab('signup')">Sign up</button>
     </div>
+
+    <!-- LOGIN FORM -->
     <div id="auth-login-form">
       <div class="auth-field">
         <label class="auth-label">Email</label>
@@ -246,11 +263,16 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.5;}
         <label class="auth-label">Password</label>
         <input class="auth-input" id="login-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
       </div>
-      <p class="auth-error" id="login-error">Invalid email or password. Try again.</p>
-      <button class="auth-btn" onclick="doLogin()">Log in</button>
+      <p class="auth-error" id="login-error"></p>
+      <button class="auth-btn" id="login-btn" onclick="doLogin()">Log in</button>
       <div class="auth-divider">or</div>
-      <button class="auth-social" onclick="doLogin()"><i class="ti ti-brand-google" style="font-size:16px"></i> Continue with Google</button>
+      <button class="auth-social" id="google-login-btn" onclick="doGoogleLogin()">
+        <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continue with Google
+      </button>
     </div>
+
+    <!-- SIGNUP FORM -->
     <div id="auth-signup-form" style="display:none">
       <div class="auth-field">
         <label class="auth-label">Name</label>
@@ -264,10 +286,14 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.5;}
         <label class="auth-label">Password</label>
         <input class="auth-input" id="signup-pw" type="password" placeholder="At least 6 characters" onkeydown="if(event.key==='Enter')doSignup()"/>
       </div>
-      <p class="auth-error" id="signup-error">Please fill in all fields.</p>
-      <button class="auth-btn" onclick="doSignup()">Create account</button>
+      <p class="auth-error" id="signup-error"></p>
+      <p class="auth-success" id="signup-success"></p>
+      <button class="auth-btn" id="signup-btn" onclick="doSignup()">Create account</button>
       <div class="auth-divider">or</div>
-      <button class="auth-social" onclick="doSignup()"><i class="ti ti-brand-google" style="font-size:16px"></i> Continue with Google</button>
+      <button class="auth-social" id="google-signup-btn" onclick="doGoogleLogin()">
+        <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continue with Google
+      </button>
     </div>
   </div>
 </div>
@@ -276,6 +302,13 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.5;}
 <div class="toast" id="toast"></div>
 
 <div class="app" id="main-app" style="display:none">
+
+<!-- VERIFY EMAIL BANNER -->
+<div class="verify-banner" id="verify-banner">
+  <i class="ti ti-mail"></i>
+  <div class="verify-banner-text"><strong>Verify your email</strong> — check your inbox and click the link to confirm your account.</div>
+  <button class="verify-banner-btn" onclick="resendVerification()">Resend</button>
+</div>
 
 <!-- HEADER -->
 <div class="header">
@@ -293,7 +326,7 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.5;}
 <div class="tabs">
   <button class="tab active" onclick="showTab('timer')"><i class="ti ti-bolt"></i><span class="tab-label">Timer</span></button>
   <button class="tab" onclick="showTab('tasks')"><i class="ti ti-checklist"></i><span class="tab-label">Tasks</span></button>
-  <button class="tab" onclick="showTab('feed')" style="position:relative"><i class="ti ti-users"></i><span class="tab-label">Feed</span><span class="notification-dot" id="notif-dot"></span></button>
+  <button class="tab" onclick="showTab('feed')" style="position:relative"><i class="ti ti-users"></i><span class="tab-label">Feed</span><span class="notification-dot" id="notif-dot" style="display:none"></span></button>
   <button class="tab" onclick="showTab('progress')"><i class="ti ti-chart-bar"></i><span class="tab-label">Progress</span></button>
   <button class="tab" onclick="showTab('profile')"><i class="ti ti-user"></i><span class="tab-label">Profile</span></button>
 </div>
@@ -400,18 +433,21 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.5;}
   </div>
   <div class="profile-name-row" style="padding-right:0;">
     <div>
-      <div class="profile-name" id="profile-display-name">Alex Kim</div>
-      <div class="profile-handle" id="profile-display-handle">@alexkim · Ulaanbaatar</div>
+      <div class="profile-name" id="profile-display-name">—</div>
+      <div class="profile-handle" id="profile-display-handle">@— · —</div>
     </div>
     <button class="edit-profile-btn" onclick="openEditProfile()"><i class="ti ti-pencil" style="font-size:13px"></i> Edit</button>
   </div>
   <div class="profile-bio" id="profile-display-bio">Deep work enthusiast. Building in public. ☕→⚡</div>
-  <div style="margin-bottom:8px;"><button style="background:none;border:0.5px solid var(--border);border-radius:20px;font-size:11px;color:var(--muted);padding:4px 12px;cursor:pointer;font-family:var(--sans);" onclick="doLogout()"><i class="ti ti-logout" style="font-size:13px;vertical-align:-2px"></i> Log out</button></div>
+  <div style="margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap;">
+    <button style="background:none;border:0.5px solid var(--border);border-radius:20px;font-size:11px;color:var(--muted);padding:4px 12px;cursor:pointer;font-family:var(--sans);" onclick="doLogout()"><i class="ti ti-logout" style="font-size:13px;vertical-align:-2px"></i> Log out</button>
+    <button style="background:none;border:0.5px solid var(--border);border-radius:20px;font-size:11px;color:var(--muted);padding:4px 12px;cursor:pointer;font-family:var(--sans);" onclick="sendPasswordReset()"><i class="ti ti-key" style="font-size:13px;vertical-align:-2px"></i> Change password</button>
+  </div>
   <div class="profile-stats-row">
     <div class="profile-stat"><div class="profile-stat-val" id="ps-sessions">0</div><div class="profile-stat-lbl">Sessions</div></div>
     <div class="profile-stat"><div class="profile-stat-val" id="ps-hours">0h</div><div class="profile-stat-lbl">Focus hrs</div></div>
     <div class="profile-stat"><div class="profile-stat-val" id="ps-streak">3</div><div class="profile-stat-lbl">Streak</div></div>
-    <div class="profile-stat"><div class="profile-stat-val" id="ps-followers">12</div><div class="profile-stat-lbl">Followers</div></div>
+    <div class="profile-stat"><div class="profile-stat-val" id="ps-followers">0</div><div class="profile-stat-lbl">Followers</div></div>
   </div>
   <div class="profile-tabs">
     <button class="profile-tab active" onclick="switchProfileTab('sessions')">Sessions</button>
@@ -479,8 +515,53 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.5;}
   </div>
 </div>
 
-<script>
-/* STATE */
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  updateProfile
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  orderBy,
+  limit,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ── Firebase config ──────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyABdjRxVSWHLLuyYAICeEZAeps58u_Zaao",
+  authDomain: "fousrun.firebaseapp.com",
+  projectId: "fousrun",
+  storageBucket: "fousrun.firebasestorage.app",
+  messagingSenderId: "441542662854",
+  appId: "1:441542662854:web:fe49adc1452c22ed5615c7",
+  measurementId: "G-H31KPQJTDX"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+// ── State ────────────────────────────────────────────────────────
 let MODES={focus:25*60,short:5*60,long:15*60};
 const CIRC=2*Math.PI*68;
 let mode='focus',totalSecs=MODES.focus,secsLeft=MODES.focus;
@@ -491,12 +572,9 @@ let lastCompletedDur=0;
 const weekData=[3,5,2,7,4,6,0];
 const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const todayIdx=(new Date().getDay()+6)%7;
-let tasks=[
-  {id:1,name:'Read research paper',sessions:2,done:false},
-  {id:2,name:'Write report outline',sessions:0,done:false},
-];
-let activeTaskId=null,nextId=3;
-let profile={name:'Alex Kim',handle:'alexkim',location:'Ulaanbaatar',bio:'Deep work enthusiast. Building in public. ☕→⚡'};
+let tasks=[];
+let activeTaskId=null,nextId=1;
+let profile={name:'',handle:'',location:'Ulaanbaatar',bio:'Deep work enthusiast. Building in public. ☕→⚡'};
 let selectedMood='';
 let postPhotoData=null;
 let currentUser=null;
@@ -508,50 +586,229 @@ const sampleFeed=[
 ];
 let feedPosts=[...sampleFeed];
 
-/* AUTH */
-function switchAuthTab(tab){
+// ── Helpers ──────────────────────────────────────────────────────
+function setLoading(btnId, loading, originalText){
+  const btn=document.getElementById(btnId);
+  if(!btn)return;
+  btn.disabled=loading;
+  btn.innerHTML=loading?`<span class="auth-loading"></span>`:(originalText||btn.textContent);
+}
+
+function showError(id, msg){
+  const el=document.getElementById(id);
+  el.textContent=msg;el.style.display='block';
+  const suc=document.getElementById(id.replace('error','success'));
+  if(suc)suc.style.display='none';
+}
+function showSuccess(id, msg){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.textContent=msg;el.style.display='block';
+  const err=document.getElementById(id.replace('success','error'));
+  if(err)err.style.display='none';
+}
+function clearMessages(){
+  ['login-error','signup-error','signup-success'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.style.display='none';
+  });
+}
+
+function firebaseErrMsg(code){
+  const map={
+    'auth/invalid-email':'Invalid email address.',
+    'auth/user-not-found':'No account with that email.',
+    'auth/wrong-password':'Incorrect password.',
+    'auth/invalid-credential':'Incorrect email or password.',
+    'auth/email-already-in-use':'An account with this email already exists.',
+    'auth/weak-password':'Password must be at least 6 characters.',
+    'auth/too-many-requests':'Too many attempts. Please try again later.',
+    'auth/popup-closed-by-user':'Sign-in popup was closed.',
+    'auth/network-request-failed':'Network error. Check your connection.',
+  };
+  return map[code]||'Something went wrong. Please try again.';
+}
+
+// ── Auth functions ───────────────────────────────────────────────
+window.switchAuthTab=function(tab){
   document.getElementById('auth-tab-login').className='auth-tab'+(tab==='login'?' active':'');
   document.getElementById('auth-tab-signup').className='auth-tab'+(tab==='signup'?' active':'');
   document.getElementById('auth-login-form').style.display=tab==='login'?'block':'none';
   document.getElementById('auth-signup-form').style.display=tab==='signup'?'block':'none';
-}
-function doLogin(){
+  clearMessages();
+};
+
+window.doLogin=async function(){
   const email=document.getElementById('login-email').value.trim();
   const pw=document.getElementById('login-pw').value;
-  const err=document.getElementById('login-error');
-  if(!email||!pw){err.style.display='block';err.textContent='Please enter your email and password.';return;}
-  err.style.display='none';
-  const name=email.split('@')[0].replace(/[^a-zA-Z]/g,' ').trim().replace(/\b\w/g,c=>c.toUpperCase())||'Focuser';
-  loginSuccess(name,email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g,''));
-}
-function doSignup(){
+  clearMessages();
+  if(!email||!pw){showError('login-error','Please enter your email and password.');return;}
+  setLoading('login-btn',true);
+  try{
+    await signInWithEmailAndPassword(auth,email,pw);
+    // onAuthStateChanged handles the rest
+  }catch(e){
+    showError('login-error',firebaseErrMsg(e.code));
+    setLoading('login-btn',false,'Log in');
+  }
+};
+
+window.doSignup=async function(){
   const name=document.getElementById('signup-name').value.trim();
   const email=document.getElementById('signup-email').value.trim();
   const pw=document.getElementById('signup-pw').value;
-  const err=document.getElementById('signup-error');
-  if(!name||!email||!pw){err.style.display='block';err.textContent='Please fill in all fields.';return;}
-  if(pw.length<6){err.style.display='block';err.textContent='Password must be at least 6 characters.';return;}
-  err.style.display='none';
-  loginSuccess(name,email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g,''));
-}
-function loginSuccess(name,handle){
-  currentUser={name,handle};
-  profile.name=name;profile.handle=handle;
-  document.getElementById('profile-display-name').textContent=name;
-  document.getElementById('profile-display-handle').textContent='@'+handle+' · '+profile.location;
-  document.getElementById('profile-avatar-initials').textContent=name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
-  document.getElementById('auth-screen').style.display='none';
-  document.getElementById('main-app').style.display='block';
-  showToast('Welcome back, '+name.split(' ')[0]+'!');
-}
-function doLogout(){
-  document.getElementById('main-app').style.display='none';
-  document.getElementById('auth-screen').style.display='flex';
-  document.getElementById('login-email').value='';
-  document.getElementById('login-pw').value='';
+  clearMessages();
+  if(!name||!email||!pw){showError('signup-error','Please fill in all fields.');return;}
+  if(pw.length<6){showError('signup-error','Password must be at least 6 characters.');return;}
+  setLoading('signup-btn',true);
+  try{
+    const cred=await createUserWithEmailAndPassword(auth,email,pw);
+    await updateProfile(cred.user,{displayName:name});
+    await sendEmailVerification(cred.user);
+    // Save user to Firestore
+    await setDoc(doc(db,'users',cred.user.uid),{
+      name,
+      handle:email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g,''),
+      location:'Ulaanbaatar',
+      bio:'Deep work enthusiast. Building in public. ☕→⚡',
+      createdAt:serverTimestamp()
+    });
+    showSuccess('signup-success','Account created! Check your email to verify your address, then log in.');
+    setLoading('signup-btn',false,'Create account');
+  }catch(e){
+    showError('signup-error',firebaseErrMsg(e.code));
+    setLoading('signup-btn',false,'Create account');
+  }
+};
+
+window.doGoogleLogin=async function(){
+  clearMessages();
+  try{
+    const result=await signInWithPopup(auth,googleProvider);
+    const user=result.user;
+    // Create profile in Firestore if new user
+    const userRef=doc(db,'users',user.uid);
+    const snap=await getDoc(userRef);
+    if(!snap.exists()){
+      await setDoc(userRef,{
+        name:user.displayName||'Focuser',
+        handle:(user.email||'').split('@')[0].toLowerCase().replace(/[^a-z0-9]/g,''),
+        location:'Ulaanbaatar',
+        bio:'Deep work enthusiast. Building in public. ☕→⚡',
+        createdAt:serverTimestamp()
+      });
+    }
+  }catch(e){
+    const errId=document.getElementById('auth-login-form').style.display!=='none'?'login-error':'signup-error';
+    showError(errId,firebaseErrMsg(e.code));
+  }
+};
+
+window.doLogout=async function(){
+  await signOut(auth);
+};
+
+window.resendVerification=async function(){
+  if(auth.currentUser){
+    await sendEmailVerification(auth.currentUser);
+    showToast('Verification email sent!');
+  }
+};
+
+window.sendPasswordReset=async function(){
+  if(!auth.currentUser?.email)return;
+  await sendPasswordResetEmail(auth,auth.currentUser.email);
+  showToast('Password reset email sent!');
+};
+
+// ── Auth state observer ──────────────────────────────────────────
+onAuthStateChanged(auth, async(user)=>{
+  if(user){
+    currentUser=user;
+    // Load profile from Firestore
+    const snap=await getDoc(doc(db,'users',user.uid));
+    if(snap.exists()){
+      const d=snap.data();
+      profile.name=d.name||user.displayName||'Focuser';
+      profile.handle=d.handle||'user';
+      profile.location=d.location||'Ulaanbaatar';
+      profile.bio=d.bio||'';
+    } else {
+      profile.name=user.displayName||'Focuser';
+      profile.handle=(user.email||'').split('@')[0].toLowerCase().replace(/[^a-z0-9]/g,'');
+    }
+    // Load tasks from Firestore
+    await loadTasks();
+    // Update UI
+    document.getElementById('profile-display-name').textContent=profile.name;
+    document.getElementById('profile-display-handle').textContent='@'+profile.handle+' · '+profile.location;
+    document.getElementById('profile-display-bio').textContent=profile.bio;
+    document.getElementById('profile-avatar-initials').textContent=profile.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+    // Show email verify banner if needed
+    if(!user.emailVerified && user.providerData[0]?.providerId==='password'){
+      document.getElementById('verify-banner').classList.add('show');
+    }
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('main-app').style.display='block';
+    showToast('Welcome, '+profile.name.split(' ')[0]+'!');
+    // Reset loading states
+    setLoading('login-btn',false,'Log in');
+  } else {
+    currentUser=null;
+    document.getElementById('main-app').style.display='none';
+    document.getElementById('auth-screen').style.display='flex';
+    document.getElementById('verify-banner').classList.remove('show');
+  }
+});
+
+// ── Firestore: tasks ─────────────────────────────────────────────
+async function loadTasks(){
+  if(!currentUser)return;
+  const q=query(collection(db,'users',currentUser.uid,'tasks'),orderBy('createdAt','asc'));
+  const snap=await getDocs(q);
+  tasks=[];
+  snap.forEach(d=>{tasks.push({id:d.id,...d.data()});});
+  if(tasks.length===0){
+    // Seed default tasks for new users
+    const defaults=['Read research paper','Write report outline'];
+    for(const name of defaults){
+      const ref=await addDoc(collection(db,'users',currentUser.uid,'tasks'),{name,sessions:0,done:false,createdAt:serverTimestamp()});
+      tasks.push({id:ref.id,name,sessions:0,done:false});
+    }
+  }
+  renderTasks();
 }
 
-/* TIMER */
+async function saveTask(task){
+  if(!currentUser)return;
+  if(task.id&&!task.id.startsWith('local')){
+    await updateDoc(doc(db,'users',currentUser.uid,'tasks',task.id),{name:task.name,sessions:task.sessions,done:task.done});
+  }
+}
+
+window.addTask=async function(){
+  const inp=document.getElementById('task-input'),name=inp.value.trim();
+  if(!name)return;
+  inp.value='';
+  const newTask={name,sessions:0,done:false};
+  if(currentUser){
+    const ref=await addDoc(collection(db,'users',currentUser.uid,'tasks'),{...newTask,createdAt:serverTimestamp()});
+    tasks.push({id:ref.id,...newTask});
+  } else {
+    tasks.push({id:'local'+(nextId++),name,sessions:0,done:false});
+  }
+  renderTasks();
+};
+
+window.toggleDone=async function(id){
+  tasks=tasks.map(t=>t.id===id?{...t,done:!t.done}:t);
+  if(activeTaskId===id&&tasks.find(t=>t.id===id).done){activeTaskId=null;document.getElementById('active-task-name').textContent='No task selected';}
+  renderTasks();
+  const t=tasks.find(t=>t.id===id);
+  if(t)await saveTask(t);
+};
+
+// ── Timer ────────────────────────────────────────────────────────
 function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
 function updateRing(){
   const offset=CIRC*(1-secsLeft/totalSecs);
@@ -559,20 +816,23 @@ function updateRing(){
   document.getElementById('ring').className='ring-fill'+(mode!=='focus'?' rest':'');
 }
 function updateDisplay(){document.getElementById('timer-display').textContent=fmt(secsLeft);updateRing();}
-function updateDuration(m,val){
+
+window.updateDuration=function(m,val){
   const mins=Math.max(1,parseInt(val)||1);
   MODES[m]=mins*60;
   if(mode===m&&!running){totalSecs=MODES[m];secsLeft=MODES[m];updateDisplay();}
-}
-function setMode(m){
+};
+
+window.setMode=function(m){
   if(running)return;
   mode=m;totalSecs=MODES[m];secsLeft=totalSecs;
   ['focus','short','long'].forEach(k=>{document.getElementById('pill-'+k).className='mode-pill'+(k===m?(m==='focus'?' active':' rest-active'):'');});
   document.getElementById('timer-label').textContent=m==='focus'?'focus time':m==='short'?'short break':'long break';
   document.getElementById('play-btn').className='ctrl-btn primary'+(m!=='focus'?' resting':'');
   updateDisplay();
-}
-function toggleTimer(){
+};
+
+window.toggleTimer=function(){
   if(running){clearInterval(interval);running=false;document.getElementById('play-icon').className='ti ti-player-play';}
   else{
     running=true;document.getElementById('play-icon').className='ti ti-player-pause';
@@ -581,28 +841,39 @@ function toggleTimer(){
       if(secsLeft<=0){
         clearInterval(interval);running=false;
         document.getElementById('play-icon').className='ti ti-player-play';
-        if(mode==='focus'){autoLogSession();}
+        if(mode==='focus')autoLogSession();
         secsLeft=0;updateDisplay();
       }
     },1000);
   }
-}
-function resetTimer(){clearInterval(interval);running=false;secsLeft=totalSecs;document.getElementById('play-icon').className='ti ti-player-play';updateDisplay();document.getElementById('autolog-banner').classList.remove('show');}
-function skipSession(){clearInterval(interval);running=false;document.getElementById('play-icon').className='ti ti-player-play';secsLeft=0;updateDisplay();}
+};
 
-/* AUTO-LOG */
-function autoLogSession(){
+window.resetTimer=function(){clearInterval(interval);running=false;secsLeft=totalSecs;document.getElementById('play-icon').className='ti ti-player-play';updateDisplay();document.getElementById('autolog-banner').classList.remove('show');};
+window.skipSession=function(){clearInterval(interval);running=false;document.getElementById('play-icon').className='ti ti-player-play';secsLeft=0;updateDisplay();};
+
+// ── Auto-log ─────────────────────────────────────────────────────
+async function autoLogSession(){
   const durMins=Math.round(MODES.focus/60);
   lastCompletedDur=durMins;
-  todaySessions++;
-  todayMins+=durMins;
+  todaySessions++;todayMins+=durMins;
   document.getElementById('stat-today').textContent=todaySessions;
   document.getElementById('stat-mins').textContent=todayMins+'m';
   document.getElementById('ps-sessions').textContent=todaySessions;
   document.getElementById('ps-hours').textContent=Math.round(todayMins/60*10)/10+'h';
   weekData[todayIdx]=todaySessions;
   const taskName=activeTaskId?tasks.find(t=>t.id===activeTaskId)?.name||'Focus session':'Focus session';
-  if(activeTaskId!==null){tasks=tasks.map(t=>t.id===activeTaskId?{...t,sessions:t.sessions+1}:t);renderTasks();}
+  if(activeTaskId!==null){
+    tasks=tasks.map(t=>t.id===activeTaskId?{...t,sessions:t.sessions+1}:t);
+    const t=tasks.find(t=>t.id===activeTaskId);
+    if(t)await saveTask(t);
+    renderTasks();
+  }
+  // Save session to Firestore
+  if(currentUser){
+    await addDoc(collection(db,'users',currentUser.uid,'sessions'),{
+      task:taskName,dur:durMins,time:nowLabel(),createdAt:serverTimestamp()
+    });
+  }
   const entry={task:taskName,dur:durMins,time:nowLabel()};
   sessionLog.unshift(entry);
   buildWeekChart();buildActivity();renderRecentLog();
@@ -612,46 +883,26 @@ function autoLogSession(){
   showToast('Session complete! '+durMins+'m logged');
   document.getElementById('notif-dot').style.display='block';
 }
-function nowLabel(){
-  const h=new Date().getHours(),m=new Date().getMinutes();
-  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
-}
-function openShareFromLog(){
-  document.getElementById('autolog-banner').classList.remove('show');
-  openPostModal();
-}
 
-/* RECENT LOG */
+function nowLabel(){const h=new Date().getHours(),m=new Date().getMinutes();return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}
+window.openShareFromLog=function(){document.getElementById('autolog-banner').classList.remove('show');openPostModal();};
+
+// ── Recent log ───────────────────────────────────────────────────
 function renderRecentLog(){
   const el=document.getElementById('recent-log');
   if(!sessionLog.length){el.innerHTML='<div class="empty-hint" style="padding:0.5rem 0 0.75rem">Sessions you complete will appear here</div>';return;}
-  el.innerHTML=sessionLog.slice(0,4).map(s=>`
-    <div class="session-log-item">
-      <div class="session-log-icon"><i class="ti ti-clock"></i></div>
-      <div class="session-log-info">
-        <div class="session-log-name">${s.task}</div>
-        <div class="session-log-meta">Today at ${s.time}</div>
-      </div>
-      <div class="session-log-dur">${s.dur}m</div>
-    </div>`).join('');
+  el.innerHTML=sessionLog.slice(0,4).map(s=>`<div class="session-log-item"><div class="session-log-icon"><i class="ti ti-clock"></i></div><div class="session-log-info"><div class="session-log-name">${s.task}</div><div class="session-log-meta">Today at ${s.time}</div></div><div class="session-log-dur">${s.dur}m</div></div>`).join('');
 }
 
-/* TASKS */
-function selectTask(id){activeTaskId=id;const t=tasks.find(t=>t.id===id);document.getElementById('active-task-name').textContent=t?t.name:'No task selected';renderTasks();showTab('timer');}
-function toggleDone(id){tasks=tasks.map(t=>t.id===id?{...t,done:!t.done}:t);if(activeTaskId===id&&tasks.find(t=>t.id===id).done){activeTaskId=null;document.getElementById('active-task-name').textContent='No task selected';}renderTasks();}
-function addTask(){const inp=document.getElementById('task-input'),name=inp.value.trim();if(!name)return;tasks.push({id:nextId++,name,sessions:0,done:false});inp.value='';renderTasks();}
+// ── Tasks render ─────────────────────────────────────────────────
+window.selectTask=function(id){activeTaskId=id;const t=tasks.find(t=>t.id===id);document.getElementById('active-task-name').textContent=t?t.name:'No task selected';renderTasks();showTab('timer');};
 function renderTasks(){
   const list=document.getElementById('task-list');
   if(!tasks.length){list.innerHTML='<div class="empty-hint">No tasks yet — add one above</div>';return;}
-  list.innerHTML=tasks.map(t=>`
-    <div class="task-item${t.id===activeTaskId?' running':''}${t.done?' done':''}">
-      <div class="task-check${t.done?' done':''}${t.id===activeTaskId?' running':''}" onclick="toggleDone(${t.id})">${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}</div>
-      <div class="task-info"><div class="task-item-name${t.done?' done':''}">${t.name}</div><div class="task-sessions">${t.sessions} session${t.sessions!==1?'s':''}</div></div>
-      ${!t.done?`<button class="task-sel-btn" onclick="selectTask(${t.id})">${t.id===activeTaskId?'active':'focus →'}</button>`:''}
-    </div>`).join('');
+  list.innerHTML=tasks.map(t=>`<div class="task-item${t.id===activeTaskId?' running':''}${t.done?' done':''}"><div class="task-check${t.done?' done':''}${t.id===activeTaskId?' running':''}" onclick="toggleDone('${t.id}')">${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}</div><div class="task-info"><div class="task-item-name${t.done?' done':''}">${t.name}</div><div class="task-sessions">${t.sessions} session${t.sessions!==1?'s':''}</div></div>${!t.done?`<button class="task-sel-btn" onclick="selectTask('${t.id}')">${t.id===activeTaskId?'active':'focus →'}</button>`:''}</div>`).join('');
 }
 
-/* PROGRESS */
+// ── Progress ─────────────────────────────────────────────────────
 function buildWeekChart(){
   const maxV=Math.max(...weekData,1);
   document.getElementById('week-chart').innerHTML=weekData.map((v,i)=>`<div class="chart-bar-wrap"><div class="chart-bar${i===todayIdx?' today':''}" style="height:${Math.max(3,Math.round((v/maxV)*80))}px"></div></div>`).join('');
@@ -663,7 +914,7 @@ function buildActivity(){
   document.getElementById('activity-grid').innerHTML='<div class="activity-weeks">'+weeks.map(w=>'<div class="activity-week">'+w.map(l=>'<div class="activity-day '+levels[l]+'"></div>').join('')+'</div>').join('')+'</div>';
 }
 
-/* FEED */
+// ── Feed ─────────────────────────────────────────────────────────
 function renderFeed(){
   const list=document.getElementById('feed-list');
   if(!feedPosts.length){list.innerHTML='<div class="empty-hint">No posts yet — be the first!</div>';return;}
@@ -672,10 +923,10 @@ function renderFeed(){
     return '<div class="feed-card"><div class="feed-card-header"><div class="feed-avatar">'+initials+'</div><div class="feed-user-info"><div class="feed-username">'+p.user+'</div><div class="feed-time">@'+p.handle+' · '+p.time+'</div></div></div><div class="feed-body"><div class="feed-title">'+p.title+'</div><div class="feed-meta"><div class="feed-meta-item"><i class="ti ti-clock"></i>'+p.duration+'m</div>'+(p.mood?'<div class="feed-meta-item">'+p.mood+'</div>':'')+'</div>'+(p.url?'<img src="'+p.url+'" class="feed-photo" alt="'+p.title+'" onerror="this.style.display=\'none\'"/>':'')+(p.note?'<div class="feed-note">"'+p.note+'"</div>':'')+'</div><div class="feed-actions"><button class="feed-action-btn'+(p.liked?' active':'')+'" onclick="toggleLike('+i+')"><i class="ti ti-heart"></i>'+p.likes+'</button><button class="feed-action-btn"><i class="ti ti-message-circle"></i>Reply</button><button class="feed-action-btn"><i class="ti ti-share"></i>Share</button></div></div>';
   }).join('');
 }
-function toggleLike(i){feedPosts[i].liked=!feedPosts[i].liked;feedPosts[i].likes+=feedPosts[i].liked?1:-1;renderFeed();}
+window.toggleLike=function(i){feedPosts[i].liked=!feedPosts[i].liked;feedPosts[i].likes+=feedPosts[i].liked?1:-1;renderFeed();};
 
-/* POST MODAL */
-function openPostModal(){
+// ── Post modal ───────────────────────────────────────────────────
+window.openPostModal=function(){
   document.getElementById('modal-auto-dur').textContent=lastCompletedDur?lastCompletedDur+'m':'—';
   document.getElementById('post-title').value='';
   document.getElementById('post-note').value='';
@@ -684,8 +935,8 @@ function openPostModal(){
   postPhotoData=null;selectedMood='';
   document.querySelectorAll('#mood-chips .chip').forEach(c=>c.classList.remove('selected'));
   document.getElementById('post-modal').style.display='flex';
-}
-function handlePostPhoto(e){
+};
+window.handlePostPhoto=function(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=ev=>{
@@ -693,14 +944,13 @@ function handlePostPhoto(e){
     const prev=document.getElementById('post-photo-preview');
     prev.src=postPhotoData;prev.style.display='block';
     document.getElementById('photo-upload-label').style.display='none';
-  };
-  reader.readAsDataURL(file);
-}
-function toggleMood(btn,mood){
+  };reader.readAsDataURL(file);
+};
+window.toggleMood=function(btn,mood){
   document.querySelectorAll('#mood-chips .chip').forEach(c=>c.classList.remove('selected'));
   if(selectedMood===mood){selectedMood='';}else{btn.classList.add('selected');selectedMood=mood;}
-}
-function submitPost(){
+};
+window.submitPost=function(){
   const title=document.getElementById('post-title').value.trim();
   if(!title){document.getElementById('post-title').focus();return;}
   const note=document.getElementById('post-note').value.trim();
@@ -708,17 +958,17 @@ function submitPost(){
   feedPosts.unshift({url:postPhotoData||'',title,duration:dur,mood:selectedMood,note,user:profile.name,handle:profile.handle,time:'Just now',likes:0,liked:false});
   renderFeed();closeModal('post-modal');showTab('feed');
   document.getElementById('notif-dot').style.display='none';
-}
+};
 
-/* PROFILE */
-function openEditProfile(){
+// ── Profile ──────────────────────────────────────────────────────
+window.openEditProfile=function(){
   document.getElementById('edit-name').value=profile.name;
-  document.getElementById('edit-handle').value='@'+profile.handle;
+  document.getElementById('edit-handle').value=profile.handle;
   document.getElementById('edit-location').value=profile.location;
   document.getElementById('edit-bio').value=profile.bio;
   document.getElementById('edit-modal').style.display='flex';
-}
-function saveProfile(){
+};
+window.saveProfile=async function(){
   profile.name=document.getElementById('edit-name').value.trim()||profile.name;
   profile.handle=document.getElementById('edit-handle').value.replace('@','').trim()||profile.handle;
   profile.location=document.getElementById('edit-location').value.trim()||profile.location;
@@ -727,23 +977,27 @@ function saveProfile(){
   document.getElementById('profile-display-handle').textContent='@'+profile.handle+' · '+profile.location;
   document.getElementById('profile-display-bio').textContent=profile.bio;
   document.getElementById('profile-avatar-initials').textContent=profile.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  if(currentUser){
+    await updateDoc(doc(db,'users',currentUser.uid),{name:profile.name,handle:profile.handle,location:profile.location,bio:profile.bio});
+    await updateProfile(currentUser,{displayName:profile.name});
+  }
   closeModal('edit-modal');
-}
-function triggerAvatarUpload(){document.getElementById('avatar-file-input').click();}
-function handleAvatarUpload(e){
+  showToast('Profile saved!');
+};
+window.triggerAvatarUpload=function(){document.getElementById('avatar-file-input').click();};
+window.handleAvatarUpload=function(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=ev=>{
-    document.getElementById('profile-avatar-display').innerHTML='<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover;display:block;"/>';
-  };reader.readAsDataURL(file);
-}
-function switchProfileTab(tab){
+  reader.onload=ev=>{document.getElementById('profile-avatar-display').innerHTML='<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover;display:block;"/>';};
+  reader.readAsDataURL(file);
+};
+window.switchProfileTab=function(tab){
   document.querySelectorAll('.profile-tab').forEach((b,i)=>{b.classList.toggle('active',['sessions','badges'][i]===tab);});
   document.getElementById('profile-tab-sessions').style.display=tab==='sessions'?'block':'none';
   document.getElementById('profile-tab-badges').style.display=tab==='badges'?'block':'none';
   if(tab==='badges')renderBadges();
   if(tab==='sessions')renderProfileSessions();
-}
+};
 function renderProfileSessions(){
   const el=document.getElementById('profile-tab-sessions');
   if(!sessionLog.length){el.innerHTML='<div class="empty-hint">Complete your first focus session to see it here</div>';return;}
@@ -761,19 +1015,19 @@ function renderBadges(){
   document.getElementById('profile-tab-badges').innerHTML='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">'+badges.map(b=>'<div style="background:var(--surface2);border-radius:var(--radius);padding:12px 8px;text-align:center;border:0.5px solid var(--border);opacity:'+(b.earned?1:0.4)+';"><div style="font-size:24px;margin-bottom:4px;">'+b.icon+'</div><div style="font-size:11px;font-weight:600;margin-bottom:2px;">'+b.name+'</div><div style="font-size:10px;color:var(--hint);line-height:1.3;">'+b.desc+'</div></div>').join('')+'</div>';
 }
 
-/* TOAST */
-function showToast(msg){
+// ── Toast ─────────────────────────────────────────────────────────
+window.showToast=function(msg){
   const t=document.getElementById('toast');
   t.textContent=msg;t.style.display='block';t.classList.add('show');
   setTimeout(()=>{t.classList.remove('show');t.style.display='none';},2500);
-}
+};
 
-/* MODALS */
-function closeModal(id){document.getElementById(id).style.display='none';}
-function closeModalOutside(e,id){if(e.target.id===id)closeModal(id);}
+// ── Modals ───────────────────────────────────────────────────────
+window.closeModal=function(id){document.getElementById(id).style.display='none';};
+window.closeModalOutside=function(e,id){if(e.target.id===id)closeModal(id);};
 
-/* TABS */
-function showTab(id){
+// ── Tabs ─────────────────────────────────────────────────────────
+window.showTab=function(id){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
@@ -781,9 +1035,9 @@ function showTab(id){
   if(labels[id]!==undefined)document.querySelectorAll('.tab')[labels[id]].classList.add('active');
   if(id==='feed'){document.getElementById('notif-dot').style.display='none';renderFeed();}
   if(id==='profile'){renderProfileSessions();}
-}
+};
 
-/* INIT */
+// ── Init ─────────────────────────────────────────────────────────
 updateDisplay();renderTasks();buildWeekChart();buildActivity();renderFeed();renderRecentLog();
 </script>
 </body>
