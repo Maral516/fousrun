@@ -568,10 +568,9 @@ import {
   query,
   orderBy,
   serverTimestamp,
-  initializeFirestore,
-  persistentLocalCache,
-  persistentMultipleTabManager
+  enableIndexedDbPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
 // ── Toggle password visibility ───────────────────────────────────
 window.togglePw=function(inputId, btn){
   const inp=document.getElementById(inputId);
@@ -593,10 +592,17 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = initializeFirestore(app, {
-  cache: persistentLocalCache({tabManager: persistentMultipleTabManager()})
-});
+const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
+
+// ── Enable offline persistence ───────────────────────────────────
+enableIndexedDbPersistence(db).catch(err => {
+  if(err.code === 'failed-precondition'){
+    console.warn('Firestore persistence unavailable: multiple tabs open.');
+  } else if(err.code === 'unimplemented'){
+    console.warn('Firestore persistence not supported in this browser.');
+  }
+});
 
 // ── Online/offline detection ─────────────────────────────────────
 function updateOnlineStatus(){
@@ -692,7 +698,6 @@ window.doLogin=async function(){
     await signInWithEmailAndPassword(auth,email,pw);
   }catch(e){
     showError('login-error',firebaseErrMsg(e.code));
-  }finally{
     setLoading('login-btn',false,'Log in');
   }
 };
@@ -841,7 +846,7 @@ onAuthStateChanged(auth, async(user)=>{
 async function loadTasks(){
   if(!currentUser)return;
   try{
-    const q=query(collection(db,'users',currentUser.uid,'tasks'),orderBy('createdAt','desc'));
+    const q=query(collection(db,'users',currentUser.uid,'tasks'),orderBy('createdAt','asc'));
     const snap=await getDocs(q);
     tasks=[];
     snap.forEach(d=>{tasks.push({id:d.id,...d.data()});});
