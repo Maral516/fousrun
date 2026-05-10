@@ -223,6 +223,20 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.5;}
     <button class="mode-pill" id="pill-short" onclick="setMode('short')">Short break</button>
     <button class="mode-pill" id="pill-long" onclick="setMode('long')">Long break</button>
   </div>
+  <div style="display:flex;gap:8px;margin-bottom:1rem;">
+    <div style="flex:1;background:var(--surface2);border-radius:8px;padding:6px 10px;border:0.5px solid var(--border);">
+      <div style="font-size:9px;color:var(--hint);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:3px;">Focus (min)</div>
+      <input type="number" id="set-focus" value="25" min="1" max="999" style="width:100%;background:none;border:none;font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);outline:none;" onchange="updateDuration('focus',this.value)"/>
+    </div>
+    <div style="flex:1;background:var(--surface2);border-radius:8px;padding:6px 10px;border:0.5px solid var(--border);">
+      <div style="font-size:9px;color:var(--hint);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:3px;">Short (min)</div>
+      <input type="number" id="set-short" value="5" min="1" max="999" style="width:100%;background:none;border:none;font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);outline:none;" onchange="updateDuration('short',this.value)"/>
+    </div>
+    <div style="flex:1;background:var(--surface2);border-radius:8px;padding:6px 10px;border:0.5px solid var(--border);">
+      <div style="font-size:9px;color:var(--hint);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:3px;">Long (min)</div>
+      <input type="number" id="set-long" value="15" min="1" max="999" style="width:100%;background:none;border:none;font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);outline:none;" onchange="updateDuration('long',this.value)"/>
+    </div>
+  </div>
   <div class="timer-ring-wrap">
     <div style="position:relative;width:160px;height:160px;">
       <svg width="160" height="160" viewBox="0 0 160 160">
@@ -402,7 +416,7 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.5;}
 
 <script>
 /* ─── STATE ─── */
-const MODES={focus:25*60,short:5*60,long:15*60};
+let MODES={focus:25*60,short:5*60,long:15*60};
 const CIRC=2*Math.PI*68;
 let mode='focus',totalSecs=MODES.focus,secsLeft=MODES.focus;
 let running=false,interval=null;
@@ -440,6 +454,11 @@ function updateRing(){
   document.getElementById('ring').className='ring-fill'+(mode!=='focus'?' rest':'');
 }
 function updateDisplay(){document.getElementById('timer-display').textContent=fmt(secsLeft);updateRing();}
+function updateDuration(m,val){
+    const mins=Math.max(1,parseInt(val)||1);
+    MODES[m]=mins*60;
+    if(mode===m&&!running){totalSecs=MODES[m];secsLeft=MODES[m];updateDisplay();}
+}
 function setMode(m){
   if(running)return;
   mode=m;totalSecs=MODES[m];secsLeft=totalSecs;
