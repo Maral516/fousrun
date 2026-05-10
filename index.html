@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FocusRun</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --orange: #E8521A; --orange-light: #FF7A45; --orange-pale: #FFF0EA;
+    --green: #1DB954; --surface: #ffffff; --surface2: #f5f5f3;
+    --border: rgba(0,0,0,0.12); --text: #1a1a1a; --muted: #666;
+    --hint: #999; --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --surface: #1a1a1a; --surface2: #242424; --border: rgba(255,255,255,0.1); --text: #f0f0f0; --muted: #aaa; --hint: #666; }
+    .streak-badge { background: #3A1A0A !important; border-color: #7A3010 !important; color: #FF8C5A !important; }
+    .activity-day.l1 { background: #4A2010 !important; }
+    .activity-day.l2 { background: #7A3010 !important; }
+    .activity-day.l3 { background: #B84415 !important; }
+  }
+  body { font-family: var(--sans); background: var(--surface); color: var(--text); max-width: 480px; margin: 0 auto; min-height: 100vh; }
+  .app { border: 0.5px solid var(--border); min-height: 100vh; }
+  .header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem 1rem; border-bottom: 0.5px solid var(--border); }
+  .logo { display: flex; align-items: center; gap: 8px; }
+  .logo-icon { width: 28px; height: 28px; background: var(--orange); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .logo-icon i { color: #fff; font-size: 15px; }
+  .logo-text { font-family: var(--mono); font-size: 14px; font-weight: 700; letter-spacing: -0.5px; color: var(--text); }
+  .streak-badge { display: flex; align-items: center; gap: 5px; background: #FFF4EE; border: 0.5px solid #FFCFB8; border-radius: 20px; padding: 4px 10px; font-size: 12px; font-weight: 500; color: #C94010; }
+  .tabs { display: flex; padding: 0 1.5rem; border-bottom: 0.5px solid var(--border); }
+  .tab { padding: 0.6rem 1rem; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -0.5px; transition: color 0.15s; background: none; border-left: none; border-right: none; border-top: none; font-family: var(--sans); }
+  .tab.active { color: var(--orange); border-bottom-color: var(--orange); }
+  .section { display: none; padding: 1.25rem 1.5rem; }
+  .section.active { display: block; }
+  .timer-ring-wrap { display: flex; justify-content: center; margin: 1rem 0 1.25rem; }
+  .ring-bg { fill: none; stroke: var(--surface2); stroke-width: 8; }
+  .ring-fill { fill: none; stroke: var(--orange); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+  .ring-fill.rest { stroke: var(--green); }
+  .timer-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+  .timer-time { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--text); }
+  .timer-label { font-size: 11px; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; }
+  .mode-pills { display: flex; gap: 6px; margin-bottom: 1rem; }
+  .mode-pill { flex: 1; padding: 6px 0; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 20px; border: 0.5px solid var(--border); background: var(--surface2); color: var(--muted); transition: all 0.15s; font-family: var(--sans); }
+  .mode-pill.active { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .mode-pill.rest-active { background: var(--green); border-color: var(--green); color: #fff; }
+  .controls { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 1.25rem; }
+  .ctrl-btn { display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 0.5px solid var(--border); background: var(--surface2); cursor: pointer; color: var(--text); transition: all 0.15s; font-family: var(--sans); }
+  .ctrl-btn:hover { opacity: 0.8; }
+  .ctrl-btn.primary { width: 52px; height: 52px; font-size: 20px; background: var(--orange); border-color: var(--orange); color: #fff; }
+  .ctrl-btn.primary.resting { background: var(--green); border-color: var(--green); }
+  .ctrl-btn.sm { width: 36px; height: 36px; font-size: 16px; }
+  .current-task-bar { display: flex; align-items: center; gap: 10px; background: var(--surface2); border-radius: 8px; padding: 10px 14px; margin-bottom: 1rem; cursor: pointer; border: 0.5px solid var(--border); transition: border-color 0.15s; }
+  .current-task-bar:hover { border-color: var(--orange); }
+  .task-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); flex-shrink: 0; }
+  .task-dot.green { background: var(--green); }
+  .task-name { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; }
+  .task-hint { font-size: 11px; color: var(--hint); }
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1.25rem; }
+  .stat-card { background: var(--surface2); border-radius: 8px; padding: 10px 12px; }
+  .stat-val { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--text); }
+  .stat-lbl { font-size: 10px; color: var(--hint); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .section-title { font-size: 11px; font-weight: 600; color: var(--hint); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .task-input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .task-input-row input { flex: 1; font-size: 13px; padding: 7px 10px; border-radius: 8px; border: 0.5px solid var(--border); background: var(--surface2); color: var(--text); font-family: var(--sans); outline: none; }
+  .task-input-row input:focus { border-color: var(--orange); }
+  .add-btn { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; background: var(--orange); border: none; color: #fff; cursor: pointer; font-size: 18px; }
+  .task-list { display: flex; flex-direction: column; gap: 6px; }
+  .task-item { display: flex; align-items: center; gap: 10px; background: var(--surface2); border-radius: 8px; padding: 9px 12px; border: 0.5px solid var(--border); cursor: pointer; transition: border-color 0.12s; }
+  .task-item.running { border-color: var(--orange); }
+  .task-item.done { opacity: 0.5; }
+  .task-check { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px; background: var(--surface); color: transparent; transition: all 0.15s; cursor: pointer; }
+  .task-check.done { background: var(--green); border-color: var(--green); color: #fff; }
+  .task-check.running { border-color: var(--orange); }
+  .task-info { flex: 1; min-width: 0; }
+  .task-item-name { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .task-item-name.done { text-decoration: line-through; }
+  .task-sessions { font-size: 11px; color: var(--hint); margin-top: 1px; }
+  .task-sel-btn { font-size: 11px; color: var(--orange); font-weight: 500; cursor: pointer; background: none; border: none; font-family: var(--sans); padding: 0; }
+  .activity-weeks { display: flex; gap: 3px; }
+  .activity-day { width: 12px; height: 12px; border-radius: 2px; background: var(--surface2); }
+  .activity-day.l1 { background: #FFD4BA; }
+  .activity-day.l2 { background: #FF8C55; }
+  .activity-day.l3 { background: var(--orange); }
+  .activity-day.l4 { background: #C94010; }
+  .activity-week { display: flex; flex-direction: column; gap: 3px; }
+  .chart-bars { display: flex; align-items: flex-end; gap: 5px; height: 80px; margin-bottom: 4px; }
+  .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .chart-bar { width: 100%; border-radius: 3px 3px 0 0; background: var(--orange); opacity: 0.8; min-height: 3px; }
+  .chart-bar.today { opacity: 1; }
+  .chart-bar-lbl { font-size: 9px; color: var(--hint); }
+  .prs-list { display: flex; flex-direction: column; gap: 6px; }
+  .pr-item { display: flex; align-items: center; gap: 10px; background: var(--surface2); border-radius: 8px; padding: 10px 12px; border: 0.5px solid var(--border); }
+  .pr-icon { font-size: 18px; width: 32px; text-align: center; }
+  .pr-name { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; }
+  .pr-val { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--orange); }
+  .empty-hint { font-size: 13px; color: var(--hint); text-align: center; padding: 1rem 0; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon"><i class="ti ti-bolt"></i></div>
+      <span class="logo-text">focusrun</span>
+    </div>
+    <div class="streak-badge"><i class="ti ti-flame" style="font-size:13px"></i> <span id="streak-count">3</span> day streak</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('timer')">Timer</button>
+    <button class="tab" onclick="showTab('tasks')">Tasks</button>
+    <button class="tab" onclick="showTab('progress')">Progress</button>
+  </div>
+
+  <div class="section active" id="tab-timer">
+    <div class="mode-pills">
+      <button class="mode-pill active" id="pill-focus" onclick="setMode('focus')">Focus</button>
+      <button class="mode-pill" id="pill-short" onclick="setMode('short')">Short break</button>
+      <button class="mode-pill" id="pill-long" onclick="setMode('long')">Long break</button>
+    </div>
+    <div class="timer-ring-wrap">
+      <div style="position:relative;width:160px;height:160px;">
+        <svg width="160" height="160" viewBox="0 0 160 160">
+          <circle class="ring-bg" cx="80" cy="80" r="68"/>
+          <circle class="ring-fill" id="ring" cx="80" cy="80" r="68" stroke-dasharray="427.3" stroke-dashoffset="0" transform="rotate(-90 80 80)"/>
+        </svg>
+        <div class="timer-inner">
+          <span class="timer-time" id="timer-display">25:00</span>
+          <span class="timer-label" id="timer-label">focus time</span>
+        </div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="ctrl-btn sm" onclick="resetTimer()"><i class="ti ti-refresh"></i></button>
+      <button class="ctrl-btn primary" id="play-btn" onclick="toggleTimer()"><i class="ti ti-player-play" id="play-icon"></i></button>
+      <button class="ctrl-btn sm" onclick="skipSession()"><i class="ti ti-player-skip-forward"></i></button>
+    </div>
+    <div class="current-task-bar" onclick="showTab('tasks')">
+      <div class="task-dot" id="active-dot"></div>
+      <span class="task-name" id="active-task-name">No task selected</span>
+      <span class="task-hint">tap to pick →</span>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val" id="stat-today">0</div><div class="stat-lbl">Sessions today</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-mins">0m</div><div class="stat-lbl">Focus time</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-streak">3</div><div class="stat-lbl">Day streak</div></div>
+    </div>
+  </div>
+
+  <div class="section" id="tab-tasks">
+    <div class="section-title">Add task</div>
+    <div class="task-input-row">
+      <input type="text" id="task-input" placeholder="e.g. Write project proposal…" maxlength="60" onkeydown="if(event.key==='Enter') addTask()"/>
+      <button class="add-btn" onclick="addTask()"><i class="ti ti-plus"></i></button>
+    </div>
+    <div class="section-title">queue</div>
+    <div class="task-list" id="task-list"></div>
+  </div>
+
+  <div class="section" id="tab-progress">
+    <div class="section-title">This week</div>
+    <div class="chart-bars" id="week-chart"></div>
+    <div style="display:flex;gap:5px;margin-bottom:1.25rem;" id="week-labels"></div>
+    <div class="section-title">Activity (last 7 weeks)</div>
+    <div id="activity-grid" style="margin-bottom:1.25rem;"></div>
+    <div class="section-title">personal records</div>
+    <div class="prs-list">
+      <div class="pr-item"><span class="pr-icon"><i class="ti ti-trophy" style="color:var(--orange)"></i></span><span class="pr-name">Longest focus session</span><span class="pr-val" id="pr-longest">25m</span></div>
+      <div class="pr-item"><span class="pr-icon"><i class="ti ti-flame" style="color:#E24B4A"></i></span><span class="pr-name">Best streak</span><span class="pr-val" id="pr-streak">3 days</span></div>
+      <div class="pr-item"><span class="pr-icon"><i class="ti ti-calendar-check" style="color:var(--green)"></i></span><span class="pr-name">Most sessions in a day</span><span class="pr-val" id="pr-sessions">4</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const MODES = { focus: 25*60, short: 5*60, long: 15*60 };
+const CIRC = 2 * Math.PI * 68;
+let mode = 'focus', totalSecs = MODES.focus, secsLeft = MODES.focus;
+let running = false, interval = null;
+let todaySessions = 0, todayMins = 0;
+let tasks = [
+  { id: 1, name: 'Read research paper', sessions: 2, done: false },
+  { id: 2, name: 'Write report outline', sessions: 0, done: false },
+];
+let activeTaskId = null, nextId = 3;
+const weekData = [3,5,2,7,4,6,0];
+const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const todayIdx = (new Date().getDay()+6)%7;
+
+function fmt(s){ return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+
+function updateRing(){
+  const offset = CIRC * (1 - secsLeft/totalSecs);
+  document.getElementById('ring').style.strokeDashoffset = offset;
+  document.getElementById('ring').className = 'ring-fill' + (mode!=='focus'?' rest':'');
+}
+
+function updateDisplay(){ document.getElementById('timer-display').textContent = fmt(secsLeft); updateRing(); }
+
+function setMode(m){
+  if(running) return;
+  mode = m; totalSecs = MODES[m]; secsLeft = totalSecs;
+  ['focus','short','long'].forEach(k => {
+    document.getElementById('pill-'+k).className = 'mode-pill' + (k===m?(m==='focus'?' active':' rest-active'):'');
+  });
+  document.getElementById('timer-label').textContent = m==='focus'?'focus time':m==='short'?'short break':'long break';
+  document.getElementById('play-btn').className = 'ctrl-btn primary' + (m!=='focus'?' resting':'');
+  updateDisplay();
+}
+
+function toggleTimer(){
+  if(running){
+    clearInterval(interval); running = false;
+    document.getElementById('play-icon').className = 'ti ti-player-play';
+  } else {
+    running = true;
+    document.getElementById('play-icon').className = 'ti ti-player-pause';
+    interval = setInterval(()=>{
+      secsLeft--;
+      updateDisplay();
+      if(secsLeft<=0){
+        clearInterval(interval); running = false;
+        document.getElementById('play-icon').className = 'ti ti-player-play';
+        if(mode==='focus'){
+          todaySessions++; todayMins+=25;
+          document.getElementById('stat-today').textContent = todaySessions;
+          document.getElementById('stat-mins').textContent = todayMins+'m';
+          weekData[todayIdx] = todaySessions;
+          if(activeTaskId!==null){ tasks=tasks.map(t=>t.id===activeTaskId?{...t,sessions:t.sessions+1}:t); renderTasks(); }
+          buildWeekChart(); buildActivity();
+        }
+        secsLeft=0; updateDisplay();
+      }
+    },1000);
+  }
+}
+
+function resetTimer(){ clearInterval(interval); running=false; secsLeft=totalSecs; document.getElementById('play-icon').className='ti ti-player-play'; updateDisplay(); }
+function skipSession(){ clearInterval(interval); running=false; document.getElementById('play-icon').className='ti ti-player-play'; secsLeft=0; updateDisplay(); }
+
+function selectTask(id){
+  activeTaskId=id;
+  const t=tasks.find(t=>t.id===id);
+  document.getElementById('active-task-name').textContent=t?t.name:'No task selected';
+  renderTasks(); showTab('timer');
+}
+
+function toggleDone(id){
+  tasks=tasks.map(t=>t.id===id?{...t,done:!t.done}:t);
+  if(activeTaskId===id&&tasks.find(t=>t.id===id).done){ activeTaskId=null; document.getElementById('active-task-name').textContent='No task selected'; }
+  renderTasks();
+}
+
+function addTask(){
+  const inp=document.getElementById('task-input'), name=inp.value.trim();
+  if(!name) return;
+  tasks.push({id:nextId++,name,sessions:0,done:false});
+  inp.value=''; renderTasks();
+}
+
+function renderTasks(){
+  const list=document.getElementById('task-list');
+  if(!tasks.length){list.innerHTML='<div class="empty-hint">No tasks yet — add one above</div>';return;}
+  list.innerHTML=tasks.map(t=>`
+    <div class="task-item${t.id===activeTaskId?' running':''}${t.done?' done':''}">
+      <div class="task-check${t.done?' done':''}${t.id===activeTaskId?' running':''}" onclick="toggleDone(${t.id})">
+        ${t.done?'<i class="ti ti-check" style="font-size:10px"></i>':''}
+      </div>
+      <div class="task-info">
+        <div class="task-item-name${t.done?' done':''}">${t.name}</div>
+        <div class="task-sessions">${t.sessions} session${t.sessions!==1?'s':''}</div>
+      </div>
+      ${!t.done?`<button class="task-sel-btn" onclick="selectTask(${t.id})">${t.id===activeTaskId?'active':'focus →'}</button>`:''}
+    </div>`).join('');
+}
+
+function buildWeekChart(){
+  const maxV=Math.max(...weekData,1);
+  document.getElementById('week-chart').innerHTML=weekData.map((v,i)=>`<div class="chart-bar-wrap"><div class="chart-bar${i===todayIdx?' today':''}" style="height:${Math.max(3,Math.round((v/maxV)*80))}px"></div></div>`).join('');
+  document.getElementById('week-labels').innerHTML=days.map((d,i)=>`<div style="flex:1;text-align:center;font-size:9px;color:${i===todayIdx?'var(--orange)':'var(--hint)'};">${d}</div>`).join('');
+}
+
+function buildActivity(){
+  const levels=['','l1','l2','l3','l4'];
+  const weeks=Array.from({length:7},(_,w)=>Array.from({length:7},(_,d)=>w===6&&d===todayIdx?Math.min(4,todaySessions+1):(Math.random()<0.35?0:Math.floor(Math.random()*4)+1)));
+  document.getElementById('activity-grid').innerHTML=`<div class="activity-weeks">${weeks.map(w=>`<div class="activity-week">${w.map(l=>`<div class="activity-day ${levels[l]}"></div>`).join('')}</div>`).join('')}</div>`;
+}
+
+function showTab(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>{if(t.textContent.toLowerCase().includes(id))t.classList.add('active');});
+}
+
+updateDisplay(); renderTasks(); buildWeekChart(); buildActivity();
+</script>
+</body>
+</html>
